@@ -1,0 +1,133 @@
+<!DOCTYPE html> <!-- Говорит браузеру, что используется HTML5 -->
+
+<html lang="en"> <!-- Начало HTML-документа -->
+
+<head> <!-- Служебная часть -->
+
+    <meta charset="UTF-8"> <!-- Поддержка русского, английского и иврита -->
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Адаптация под размер экрана -->
+
+    <title>Login</title> <!-- Название вкладки -->
+
+    <link rel="stylesheet" href="style.css"> <!-- Подключаем CSS -->
+
+</head>
+
+<body> <!-- Видимая часть страницы -->
+
+
+    <div class="top-controls"> <!-- Верхняя панель -->
+
+        <select id="languageSelect"> <!-- Выбор языка -->
+
+            <option value="en">English</option> <!-- Английский -->
+
+            <option value="ru">Русский</option> <!-- Русский -->
+
+            <option value="he">עברית</option> <!-- Иврит -->
+
+        </select>
+
+        <button id="themeButton" type="button">Dark theme</button> <!-- Переключение темы -->
+
+    </div>
+
+
+    <div class="auth-layout"> <!-- Общий блок авторизации -->
+
+
+        <div class="blockchain-art" aria-hidden="true"> <!-- Декоративная blockchain-цепочка -->
+
+            <div class="chain-block block-one">01</div> <!-- Первый блок -->
+
+            <div class="chain-line"></div> <!-- Соединение -->
+
+            <div class="chain-block block-two">02</div> <!-- Второй блок -->
+
+            <div class="chain-line"></div> <!-- Соединение -->
+
+            <div class="chain-block block-three">03</div> <!-- Третий блок -->
+
+        </div>
+
+
+        <div class="login-container"> <!-- Карточка Login -->
+
+            <div class="security-badge"> <!-- Blockchain badge -->
+
+                <span class="security-icon">◇</span> <!-- Значок -->
+
+                <span id="securityText">BLOCKCHAIN SECURED</span> <!-- Текст -->
+
+            </div>
+
+
+            <h1 id="title">Secure Documents</h1> <!-- Заголовок -->
+
+            <p id="subtitle" class="subtitle">Protected access to your documents</p> <!-- Подзаголовок -->
+
+
+            <form id="loginForm"> <!-- Форма Login -->
+
+                <label id="usernameLabel" for="username">Username</label> <!-- Username -->
+
+                <input
+                    type="text"
+                    id="username"
+                    placeholder="Enter username"
+                    required
+                > <!-- Поле Username -->
+
+
+                <label id="passwordLabel" for="password">Password</label> <!-- Password -->
+
+                <input
+                    type="password"
+                    id="password"
+                    placeholder="Enter password"
+                    required
+                > <!-- Поле Password -->
+
+
+                <div class="login-options"> <!-- Remember me и Forgot password -->
+
+                    <label class="remember-me"> <!-- Блок Remember me -->
+
+                        <input id="rememberMe" type="checkbox"> <!-- Checkbox -->
+
+                        <span id="rememberText">Remember me</span> <!-- Текст checkbox -->
+
+                    </label>
+
+                    <a id="forgotPasswordLink" href="forgot-password.html">Forgot password?</a> <!-- Переход на восстановление -->
+
+                </div>
+
+
+                <button id="loginButton" type="submit">Login</button> <!-- Кнопка Login -->
+
+            </form>
+
+
+            <p id="message"></p> <!-- Сообщение Login -->
+
+
+            <p class="switch-page"> <!-- Переход на регистрацию -->
+
+                <span id="registerQuestion">Don't have an account?</span> <!-- Текст -->
+
+                <a id="registerLink" href="register.html">Sign Up</a> <!-- Sign Up -->
+
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <script src="script.js"></script> <!-- Подключаем JavaScript -->
+
+</body>
+
+</html>
