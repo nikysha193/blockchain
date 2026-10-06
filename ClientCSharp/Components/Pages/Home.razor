@@ -1,0 +1,610 @@
+﻿@page "/"
+@rendermode InteractiveServer
+
+@using System.Net.Http.Json
+
+@inject IHttpClientFactory HttpClientFactory
+@inject AppState AppState
+
+<PageTitle>Login</PageTitle>
+
+
+<!-- ========================================= -->
+<!-- SETTINGS -->
+<!-- ========================================= -->
+
+<div class="top-controls">
+
+    <div class="settings-capsule @(showSettingsMenu ? "open" : "")">
+
+        <!-- Содержимое раскрывающейся панели -->
+        <div class="settings-capsule-content">
+
+            <!-- Light / Dark -->
+            <div class="theme-segment">
+
+                <!-- Light Mode -->
+                <button type="button"
+                        class="theme-choice @(!darkTheme ? "active" : "")"
+                        @onclick="SetLightTheme">
+
+                    <span class="sun-icon">☀</span>
+
+                </button>
+
+
+                <!-- Dark Mode -->
+                <button type="button"
+                        class="theme-choice @(darkTheme ? "active" : "")"
+                        @onclick="SetDarkTheme">
+
+                    <span class="moon-icon">☾</span>
+
+                </button>
+
+            </div>
+
+
+            <div class="settings-divider"></div>
+
+
+            <!-- Language -->
+            <select class="settings-language-select"
+                    @bind="currentLanguage"
+                    @bind:after="ChangeLanguage">
+
+                <option value="en">English</option>
+                <option value="ru">Русский</option>
+                <option value="he">עברית</option>
+
+            </select>
+
+        </div>
+
+
+        <!-- Settings button -->
+        <button type="button"
+                class="settings-gear-button"
+                @onclick="ToggleSettingsMenu">
+
+            <svg class="settings-gear-icon"
+                 viewBox="0 0 24 24"
+                 fill="none">
+
+                <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35A1.724 1.724 0 0 0 5.382 7.75c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.573-1.066Z"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round" />
+
+                <path d="M12 15.25A3.25 3.25 0 1 0 12 8.75a3.25 3.25 0 0 0 0 6.5Z"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round" />
+
+            </svg>
+
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- ========================================= -->
+<!-- LOGIN PAGE -->
+<!-- ========================================= -->
+
+<div class="auth-layout @(darkTheme ? "dark" : "")">
+
+    <!-- Blockchain decoration -->
+    <div class="blockchain-art" aria-hidden="true">
+
+        <div class="chain-block block-one">01</div>
+
+        <div class="chain-line"></div>
+
+        <div class="chain-block block-two">02</div>
+
+        <div class="chain-line"></div>
+
+        <div class="chain-block block-three">03</div>
+
+    </div>
+
+
+    <!-- Login card -->
+    <div class="login-container">
+
+        <div class="security-badge">
+
+            <span class="security-icon">◇</span>
+
+            <span>@securityText</span>
+
+        </div>
+
+
+        <h1>@title</h1>
+
+        <p class="subtitle">
+            @subtitle
+        </p>
+
+
+        <!-- При отправке формы вызывается C# метод Login -->
+        <form @onsubmit="Login"
+              @onsubmit:preventDefault="true">
+
+            <!-- Username -->
+            <label for="username"
+                   dir="@(currentLanguage == "he" ? "rtl" : "ltr")">
+                @usernameLabel
+            </label>
+
+            <input type="text"
+                   id="username"
+                   @bind="username"
+                   dir="@(currentLanguage == "he" ? "rtl" : "ltr")"
+                   placeholder="@usernamePlaceholder"
+                   required />
+
+
+            <!-- Password -->
+            <label for="password"
+                   dir="@(currentLanguage == "he" ? "rtl" : "ltr")">
+                @passwordLabel
+            </label>
+
+            <input type="password"
+                   id="password"
+                   @bind="password"
+                   dir="@(currentLanguage == "he" ? "rtl" : "ltr")"
+                   placeholder="@passwordPlaceholder"
+                   required />
+
+
+            <div class="login-options">
+
+                <label class="remember-me">
+
+                    <!-- Remember Me пока только хранит состояние checkbox -->
+                    <input type="checkbox"
+                           @bind="rememberMe" />
+
+                    <span>@rememberText</span>
+
+                </label>
+
+
+                <a href="/forgot-password">
+                    @forgotPasswordText
+                </a>
+
+            </div>
+
+
+            <button id="loginButton"
+                    type="submit">
+                @loginButtonText
+            </button>
+
+        </form>
+
+
+        <!-- Результат Login -->
+        <p id="message">@message</p>
+
+
+        <p class="switch-page">
+
+            <span>@registerQuestion</span>
+
+            <a href="/register">
+                @registerLinkText
+            </a>
+
+        </p>
+
+    </div>
+
+</div>
+
+
+@code
+{
+    // ==========================================
+    // LANGUAGE
+    // ==========================================
+
+    // Язык хранится в общем AppState.
+    private string currentLanguage
+    {
+        get => AppState.Language;
+        set => AppState.Language = value;
+    }
+
+
+    // ==========================================
+    // THEME
+    // ==========================================
+
+    // Тема тоже хранится в общем AppState.
+    private bool darkTheme
+    {
+        get => AppState.DarkTheme;
+        set => AppState.DarkTheme = value;
+    }
+
+
+    // Показывает или скрывает Settings Capsule.
+    private bool showSettingsMenu = false;
+
+
+    // ==========================================
+    // LOGIN DATA
+    // ==========================================
+
+    private string username = "";
+
+    private string password = "";
+
+
+    // Remember Me пока ещё не сохраняет Username.
+    private bool rememberMe = false;
+
+
+    // ==========================================
+    // MESSAGE
+    // ==========================================
+
+    private string message = "";
+
+
+    // ==========================================
+    // PAGE TEXT
+    // ==========================================
+
+    private string securityText = "BLOCKCHAIN SECURED";
+
+    private string title = "Secure Documents";
+
+    private string subtitle =
+        "Protected access to your documents";
+
+    private string usernameLabel = "Username";
+
+    private string passwordLabel = "Password";
+
+    private string usernamePlaceholder =
+        "Enter username";
+
+    private string passwordPlaceholder =
+        "Enter password";
+
+    private string rememberText =
+        "Remember me";
+
+    private string forgotPasswordText =
+        "Forgot password?";
+
+    private string loginButtonText =
+        "Login";
+
+    private string registerQuestion =
+        "Don't have an account?";
+
+    private string registerLinkText =
+        "Sign Up";
+
+
+    // ==========================================
+    // PAGE START
+    // ==========================================
+
+    // Вызывается автоматически при открытии Login.
+    protected override void OnInitialized()
+    {
+        // Применяем язык,
+        // который уже находится в AppState.
+        ChangeLanguage();
+    }
+
+
+    // ==========================================
+    // SETTINGS
+    // ==========================================
+
+    // Открывает или закрывает Settings Capsule.
+    private void ToggleSettingsMenu()
+    {
+        showSettingsMenu = !showSettingsMenu;
+    }
+
+
+    // Включает Light Mode.
+    private void SetLightTheme()
+    {
+        darkTheme = false;
+    }
+
+
+    // Включает Dark Mode.
+    private void SetDarkTheme()
+    {
+        darkTheme = true;
+    }
+
+
+    // ==========================================
+    // LANGUAGE
+    // ==========================================
+
+    // Вызывается после изменения языка.
+    private void ChangeLanguage()
+    {
+        if (currentLanguage == "ru")
+        {
+            securityText = "ЗАЩИЩЕНО BLOCKCHAIN";
+
+            title = "Безопасные документы";
+
+            subtitle =
+                "Защищённый доступ к вашим документам";
+
+            usernameLabel =
+                "Имя пользователя";
+
+            passwordLabel =
+                "Пароль";
+
+            usernamePlaceholder =
+                "Введите имя пользователя";
+
+            passwordPlaceholder =
+                "Введите пароль";
+
+            rememberText =
+                "Запомнить меня";
+
+            forgotPasswordText =
+                "Забыли пароль?";
+
+            loginButtonText =
+                "Войти";
+
+            registerQuestion =
+                "Нет аккаунта?";
+
+            registerLinkText =
+                "Регистрация";
+        }
+
+        else if (currentLanguage == "he")
+        {
+            securityText =
+                "מאובטח באמצעות BLOCKCHAIN";
+
+            title =
+                "מסמכים מאובטחים";
+
+            subtitle =
+                "גישה מאובטחת למסמכים שלך";
+
+            usernameLabel =
+                "שם משתמש";
+
+            passwordLabel =
+                "סיסמה";
+
+            usernamePlaceholder =
+                "הכנס שם משתמש";
+
+            passwordPlaceholder =
+                "הכנס סיסמה";
+
+            rememberText =
+                "זכור אותי";
+
+            forgotPasswordText =
+                "שכחת סיסמה?";
+
+            loginButtonText =
+                "התחברות";
+
+            registerQuestion =
+                "אין לך חשבון?";
+
+            registerLinkText =
+                "הרשמה";
+        }
+
+        else
+        {
+            securityText =
+                "BLOCKCHAIN SECURED";
+
+            title =
+                "Secure Documents";
+
+            subtitle =
+                "Protected access to your documents";
+
+            usernameLabel =
+                "Username";
+
+            passwordLabel =
+                "Password";
+
+            usernamePlaceholder =
+                "Enter username";
+
+            passwordPlaceholder =
+                "Enter password";
+
+            rememberText =
+                "Remember me";
+
+            forgotPasswordText =
+                "Forgot password?";
+
+            loginButtonText =
+                "Login";
+
+            registerQuestion =
+                "Don't have an account?";
+
+            registerLinkText =
+                "Sign Up";
+        }
+
+
+        // После смены языка убираем
+        // сообщение на предыдущем языке.
+        message = "";
+    }
+
+
+    // ==========================================
+    // LOGIN
+    // ==========================================
+
+    // Вызывается при нажатии Login.
+    private async Task Login()
+    {
+        try
+        {
+            // Получаем HttpClient.
+            var client =
+                HttpClientFactory.CreateClient();
+
+
+            // Создаём объект с данными Login.
+            var loginRequest = new
+            {
+                Username = username,
+                Password = password
+            };
+
+
+            // Отправляем Username и Password
+            // в Login API нашего Server.
+            var response =
+                await client.PostAsJsonAsync(
+                    "http://localhost:5000/api/login",
+                    loginRequest
+                );
+
+
+            // Успешный ответ Server.
+            if (response.IsSuccessStatusCode)
+            {
+                var data =
+                    await response.Content
+                        .ReadFromJsonAsync<LoginResponse>();
+
+
+                if (currentLanguage == "ru")
+                {
+                    message =
+                        "Вход выполнен успешно";
+                }
+
+                else if (currentLanguage == "he")
+                {
+                    message =
+                        "ההתחברות בוצעה בהצלחה";
+                }
+
+                else
+                {
+                    message =
+                        data?.Message ?? "Login successful";
+                }
+            }
+
+
+            // Неправильный Username или Password.
+            else if (response.StatusCode ==
+                     System.Net.HttpStatusCode.Unauthorized)
+            {
+                if (currentLanguage == "ru")
+                {
+                    message =
+                        "Неверное имя пользователя или пароль";
+                }
+
+                else if (currentLanguage == "he")
+                {
+                    message =
+                        "שם המשתמש או הסיסמה שגויים";
+                }
+
+                else
+                {
+                    message =
+                        "Incorrect username or password";
+                }
+            }
+
+
+            // Другая ошибка Server.
+            else
+            {
+                if (currentLanguage == "ru")
+                {
+                    message =
+                        "Ошибка сервера";
+                }
+
+                else if (currentLanguage == "he")
+                {
+                    message =
+                        "שגיאת שרת";
+                }
+
+                else
+                {
+                    message =
+                        "Server error";
+                }
+            }
+        }
+
+        catch
+        {
+            // Client вообще не смог
+            // подключиться к Server.
+
+            if (currentLanguage == "ru")
+            {
+                message =
+                    "Не удалось подключиться к серверу";
+            }
+
+            else if (currentLanguage == "he")
+            {
+                message =
+                    "לא ניתן להתחבר לשרת";
+            }
+
+            else
+            {
+                message =
+                    "Cannot connect to server";
+            }
+        }
+    }
+
+
+    // ==========================================
+    // SERVER RESPONSE
+    // ==========================================
+
+    // Описывает JSON-ответ Login API.
+    private class LoginResponse
+    {
+        public string Message { get; set; } = "";
+    }
+}

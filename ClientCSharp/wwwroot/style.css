@@ -1,0 +1,962 @@
+/* ================================================= */
+/* COLORS */
+/* ================================================= */
+
+:root {
+    /* Light Mode */
+
+    --page-background: #f5f7fb;
+    --card-background: rgba(255, 255, 255, 0.96);
+    --block-background: rgba(255, 255, 255, 0.80);
+
+    --text-color: #111827;
+    --secondary-text: #6b7280;
+
+    --input-background: #f8fafc;
+    --input-border: #d7dee8;
+
+    --accent: #2563eb;
+    --accent-soft: rgba(37, 99, 235, 0.12);
+    --line-color: rgba(37, 99, 235, 0.45);
+
+    --success: #16a34a;
+
+    --button-background: #111827;
+    --button-text: #ffffff;
+
+    --shadow: rgba(15, 23, 42, 0.12);
+    --grid: rgba(37, 99, 235, 0.045);
+}
+
+
+/* ================================================= */
+/* DARK MODE */
+/* ================================================= */
+
+/*
+   C# добавляет класс dark к .auth-layout.
+
+   :has() проверяет:
+   есть ли внутри body элемент .auth-layout.dark.
+
+   Если да, меняются CSS-переменные всей страницы.
+*/
+
+body:has(.auth-layout.dark) {
+    --page-background: #090d13;
+    --card-background: rgba(15, 20, 28, 0.96);
+    --block-background: rgba(18, 26, 37, 0.82);
+
+    --text-color: #f3f6fb;
+    --secondary-text: #8e9aaa;
+
+    --input-background: #121923;
+    --input-border: #2a3545;
+
+    --accent: #4f8cff;
+    --accent-soft: rgba(79, 140, 255, 0.14);
+    --line-color: rgba(79, 140, 255, 0.55);
+
+    --success: #3ddc84;
+
+    --button-background: #2f6feb;
+    --button-text: #ffffff;
+
+    --shadow: rgba(0, 0, 0, 0.45);
+    --grid: rgba(79, 140, 255, 0.035);
+}
+
+
+/* ================================================= */
+/* GENERAL */
+/* ================================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+
+    font-family: Inter, Arial, sans-serif;
+
+    background-color: var(--page-background);
+    color: var(--text-color);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    overflow-x: hidden;
+
+    transition:
+        background-color 0.3s,
+        color 0.3s;
+}
+
+
+/* ================================================= */
+/* BACKGROUND */
+/* ================================================= */
+
+body::before {
+    content: "";
+
+    position: fixed;
+    inset: 0;
+
+    background-image:
+        linear-gradient(
+            var(--grid) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            var(--grid) 1px,
+            transparent 1px
+        );
+
+    background-size: 46px 46px;
+
+    pointer-events: none;
+
+    z-index: -2;
+}
+
+
+body::after {
+    content: "";
+
+    position: fixed;
+
+    width: 600px;
+    height: 600px;
+
+    top: 50%;
+    left: 50%;
+
+    transform: translate(-50%, -50%);
+
+    border-radius: 50%;
+
+    background: var(--accent-soft);
+
+    filter: blur(120px);
+
+    pointer-events: none;
+
+    z-index: -1;
+}
+
+
+/* ================================================= */
+/* TOP CONTROLS */
+/* ================================================= */
+
+/*
+   Здесь теперь находится только Settings Capsule.
+
+   Старые общие стили для select/button удалены,
+   потому что каждый элемент capsule имеет свой класс.
+*/
+
+.top-controls {
+    position: fixed;
+
+    top: 22px;
+    right: 24px;
+
+    z-index: 20;
+}
+
+
+/* ================================================= */
+/* MAIN AUTH LAYOUT */
+/* ================================================= */
+
+.auth-layout {
+    /*
+       Этот контейнер отвечает за расположение
+       карточки и Blockchain-декорации.
+    */
+
+    position: relative;
+
+    width: 920px;
+    min-height: 690px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 90px 30px;
+}
+
+
+/* ================================================= */
+/* AUTH CARD */
+/* ================================================= */
+
+.login-container {
+    position: relative;
+
+    z-index: 5;
+
+    width: 390px;
+
+    padding: 38px 38px 32px;
+
+    background-color: var(--card-background);
+
+    border: 1px solid var(--input-border);
+    border-radius: 20px;
+
+    box-shadow: 0 25px 70px var(--shadow);
+
+    backdrop-filter: blur(16px);
+
+    transition:
+        background-color 0.3s,
+        border-color 0.3s,
+        box-shadow 0.3s;
+}
+
+
+.login-container::before {
+    content: "";
+
+    position: absolute;
+
+    top: -1px;
+    left: 70px;
+    right: 70px;
+
+    height: 2px;
+
+    background: linear-gradient(
+        90deg,
+        transparent,
+        var(--accent),
+        transparent
+    );
+
+    box-shadow: 0 0 18px var(--accent);
+}
+
+
+/* ================================================= */
+/* SECURITY BADGE */
+/* ================================================= */
+
+.security-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 7px;
+
+    margin-bottom: 13px;
+
+    color: var(--accent);
+
+    font-size: 10px;
+    font-weight: 700;
+
+    letter-spacing: 1.8px;
+}
+
+
+.security-icon {
+    font-size: 16px;
+
+    text-shadow: 0 0 10px var(--accent);
+}
+
+
+/* ================================================= */
+/* TEXT */
+/* ================================================= */
+
+h1 {
+    margin: 0;
+
+    text-align: center;
+
+    font-size: 28px;
+
+    letter-spacing: -0.6px;
+
+    color: var(--text-color);
+}
+
+
+.subtitle {
+    margin: 8px 0 27px;
+
+    text-align: center;
+
+    color: var(--secondary-text);
+
+    font-size: 13px;
+}
+
+
+label {
+    display: block;
+
+    margin: 15px 0 6px;
+
+    color: var(--text-color);
+
+    font-size: 13px;
+    font-weight: 600;
+}
+
+
+/* ================================================= */
+/* INPUTS */
+/* ================================================= */
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+    width: 100%;
+    height: 46px;
+
+    padding: 0 13px;
+
+    border: 1px solid var(--input-border);
+    border-radius: 10px;
+
+    background-color: var(--input-background);
+    color: var(--text-color);
+
+    font-size: 14px;
+
+    outline: none;
+
+    transition:
+        background-color 0.2s,
+        color 0.2s,
+        border-color 0.2s,
+        box-shadow 0.2s;
+}
+
+
+input[type="text"]::placeholder,
+input[type="email"]::placeholder,
+input[type="password"]::placeholder {
+    color: var(--secondary-text);
+}
+
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus {
+    border-color: var(--accent);
+
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+
+/* ================================================= */
+/* LOGIN OPTIONS */
+/* ================================================= */
+
+.login-options {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 15px;
+
+    margin-top: 14px;
+}
+
+
+.remember-me {
+    display: flex;
+    align-items: center;
+
+    gap: 7px;
+
+    margin: 0;
+
+    color: var(--secondary-text);
+
+    font-size: 12px;
+    font-weight: 500;
+
+    white-space: nowrap;
+
+    cursor: pointer;
+}
+
+
+.remember-me input {
+    width: 15px;
+    height: 15px;
+
+    margin: 0;
+
+    accent-color: var(--accent);
+
+    cursor: pointer;
+}
+
+
+.login-options a {
+    color: var(--accent);
+
+    text-decoration: none;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    white-space: nowrap;
+}
+
+
+.login-options a:hover {
+    text-decoration: underline;
+}
+
+
+/* ================================================= */
+/* MAIN BUTTONS */
+/* ================================================= */
+
+#loginButton,
+#registerButton,
+#resetButton {
+    width: 100%;
+    height: 47px;
+
+    margin-top: 24px;
+
+    border: none;
+    border-radius: 10px;
+
+    background: var(--button-background);
+    color: var(--button-text);
+
+    font-size: 14px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.3s,
+        transform 0.15s,
+        box-shadow 0.2s;
+}
+
+
+#loginButton:hover,
+#registerButton:hover,
+#resetButton:hover {
+    transform: translateY(-1px);
+
+    box-shadow: 0 9px 24px var(--accent-soft);
+}
+
+
+#loginButton:active,
+#registerButton:active,
+#resetButton:active {
+    transform: scale(0.985);
+}
+
+
+/* ================================================= */
+/* MESSAGE */
+/* ================================================= */
+
+#message {
+    min-height: 18px;
+
+    margin: 14px 0 0;
+
+    text-align: center;
+
+    color: var(--secondary-text);
+
+    font-size: 12px;
+}
+
+
+/* ================================================= */
+/* BOTTOM LINK */
+/* ================================================= */
+
+.switch-page {
+    margin: 18px 0 0;
+
+    text-align: center;
+
+    color: var(--secondary-text);
+
+    font-size: 12px;
+}
+
+
+.switch-page a {
+    margin-left: 4px;
+
+    color: var(--accent);
+
+    text-decoration: none;
+
+    font-weight: 700;
+}
+
+
+.switch-page a:hover {
+    text-decoration: underline;
+}
+
+
+/* ================================================= */
+/* BLOCKCHAIN DECORATION */
+/* ================================================= */
+
+.blockchain-art {
+    position: absolute;
+
+    inset: 0;
+
+    pointer-events: none;
+
+    z-index: 1;
+}
+
+
+.chain-block {
+    position: absolute;
+
+    width: 190px;
+
+    padding: 16px;
+
+    border: 1px solid var(--line-color);
+    border-radius: 14px;
+
+    background-color: var(--block-background);
+    color: var(--text-color);
+
+    box-shadow: 0 15px 35px var(--shadow);
+
+    backdrop-filter: blur(10px);
+
+    transition:
+        background-color 0.3s,
+        color 0.3s,
+        border-color 0.3s,
+        box-shadow 0.3s;
+}
+
+
+.block-one {
+    top: 87px;
+    left: 40px;
+}
+
+
+.block-two {
+    top: 305px;
+    right: 0;
+}
+
+
+.block-three {
+    bottom: 30px;
+    left: 65px;
+}
+
+
+.chain-block::before {
+    content: "●  VERIFIED";
+
+    display: block;
+
+    margin-bottom: 10px;
+
+    color: var(--success);
+
+    font-size: 9px;
+    font-weight: 700;
+
+    letter-spacing: 1px;
+}
+
+
+.chain-block::after {
+    display: block;
+
+    margin-top: 8px;
+
+    color: var(--secondary-text);
+
+    font-family: Consolas, monospace;
+
+    font-size: 9px;
+}
+
+
+.block-one::after {
+    content: "7F3A...91C2";
+}
+
+
+.block-two::after {
+    content: "A91E...42D7";
+}
+
+
+.block-three::after {
+    content: "C72B...8F10";
+}
+
+
+/* ================================================= */
+/* BLOCKCHAIN CONNECTION LINES */
+/* ================================================= */
+
+.chain-line {
+    position: absolute;
+
+    width: 115px;
+    height: 1px;
+
+    background: var(--line-color);
+
+    box-shadow: 0 0 8px var(--accent-soft);
+
+    transition:
+        background-color 0.3s,
+        box-shadow 0.3s;
+}
+
+
+.chain-line:nth-of-type(2) {
+    top: 205px;
+    left: 190px;
+
+    transform: rotate(28deg);
+}
+
+
+.chain-line:nth-of-type(4) {
+    right: 166px;
+    bottom: 182px;
+
+    transform: rotate(30deg);
+}
+
+
+/* ================================================= */
+/* SETTINGS CAPSULE */
+/* ================================================= */
+
+.settings-capsule {
+    width: 44px;
+    height: 44px;
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    overflow: hidden;
+
+    border: 1px solid var(--input-border);
+    border-radius: 14px;
+
+    background: var(--card-background);
+
+    box-shadow: 0 8px 24px var(--shadow);
+
+    backdrop-filter: blur(16px);
+
+    transition:
+        width 0.28s ease,
+        background-color 0.3s,
+        border-color 0.3s,
+        box-shadow 0.3s;
+}
+
+
+/* Открытая capsule */
+.settings-capsule.open {
+    width: 258px;
+}
+
+
+/* ================================================= */
+/* SETTINGS CONTENT */
+/* ================================================= */
+
+.settings-capsule-content {
+    width: 0;
+
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+
+    overflow: hidden;
+
+    opacity: 0;
+
+    pointer-events: none;
+
+    transition:
+        width 0.28s ease,
+        opacity 0.18s ease;
+}
+
+
+.settings-capsule.open .settings-capsule-content {
+    width: 208px;
+
+    padding-left: 7px;
+
+    opacity: 1;
+
+    pointer-events: auto;
+}
+
+
+/* ================================================= */
+/* SETTINGS GEAR */
+/* ================================================= */
+
+.settings-gear-button {
+    width: 42px;
+    height: 42px;
+
+    min-width: 42px;
+
+    padding: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+    border-radius: 12px;
+
+    background: transparent;
+    color: var(--text-color);
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s,
+        transform 0.28s ease;
+}
+
+
+.settings-gear-button:hover {
+    background: var(--accent-soft);
+}
+
+
+.settings-gear-icon {
+    width: 23px;
+    height: 23px;
+
+    display: block;
+
+    color: var(--text-color);
+
+    flex-shrink: 0;
+
+    transition:
+        transform 0.28s ease,
+        color 0.3s;
+}
+
+
+/* При открытии шестерёнка поворачивается */
+.settings-capsule.open .settings-gear-icon {
+    transform: rotate(90deg);
+}
+
+
+/* ================================================= */
+/* THEME SELECTOR */
+/* ================================================= */
+
+.theme-segment {
+    height: 34px;
+
+    display: flex;
+    align-items: center;
+
+    padding: 3px;
+
+    border: 1px solid var(--input-border);
+    border-radius: 10px;
+
+    background: var(--input-background);
+}
+
+
+.theme-choice {
+    width: 31px;
+    height: 27px;
+
+    padding: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+    border-radius: 7px;
+
+    background: transparent;
+    color: var(--secondary-text);
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s,
+        color 0.2s,
+        box-shadow 0.2s;
+}
+
+
+/* Активная тема */
+.theme-choice.active {
+    background: var(--card-background);
+    color: var(--text-color);
+
+    box-shadow: 0 2px 7px var(--shadow);
+}
+
+
+.theme-choice:not(.active):hover {
+    color: var(--accent);
+}
+
+
+/* ================================================= */
+/* SUN / MOON */
+/* ================================================= */
+
+.sun-icon,
+.moon-icon {
+    display: block;
+
+    font-family: Arial, sans-serif;
+
+    line-height: 1;
+
+    color: currentColor;
+}
+
+
+.sun-icon {
+    font-size: 21px;
+}
+
+
+/* Обычный текстовый символ, а не жёлтый emoji */
+.moon-icon {
+    font-size: 23px;
+}
+
+
+/* ================================================= */
+/* SETTINGS DIVIDER */
+/* ================================================= */
+
+.settings-divider {
+    width: 1px;
+    height: 22px;
+
+    flex-shrink: 0;
+
+    background: var(--input-border);
+}
+
+
+/* ================================================= */
+/* SETTINGS LANGUAGE */
+/* ================================================= */
+
+.settings-language-select {
+    width: 105px;
+    height: 34px;
+
+    padding: 0 9px;
+
+    border: none;
+    border-radius: 9px;
+
+    background: transparent;
+    color: var(--text-color);
+
+    font-size: 12px;
+    font-weight: 500;
+
+    outline: none;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s,
+        color 0.2s;
+}
+
+
+.settings-language-select:hover,
+.settings-language-select:focus {
+    background: var(--accent-soft);
+}
+
+
+/*
+   Option тоже использует цвета текущей темы.
+   Поэтому текст виден и в Light, и в Dark Mode.
+*/
+.settings-language-select option {
+    background-color: var(--page-background);
+    color: var(--text-color);
+}
+
+
+/* ================================================= */
+/* MOBILE */
+/* ================================================= */
+
+@media (max-width: 850px) {
+
+    /* Blockchain-декорацию скрываем */
+    .blockchain-art {
+        display: none;
+    }
+
+
+    .auth-layout {
+        width: 100%;
+        min-height: auto;
+
+        padding: 90px 20px 40px;
+    }
+
+
+    .login-container {
+        width: 100%;
+        max-width: 390px;
+    }
+
+
+    /* Немного уменьшаем Settings на узком экране */
+    .top-controls {
+        top: 16px;
+        right: 16px;
+    }
+}

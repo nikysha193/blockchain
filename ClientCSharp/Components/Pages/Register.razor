@@ -1,0 +1,575 @@
+@page "/register"
+@rendermode InteractiveServer
+
+@using System.Net.Http.Json
+
+@inject AppState AppState
+@inject IHttpClientFactory HttpClientFactory
+
+<PageTitle>Register</PageTitle>
+
+
+<!-- ========================================= -->
+<!-- SETTINGS -->
+<!-- ========================================= -->
+
+<div class="top-controls">
+
+    <div class="settings-capsule @(showSettingsMenu ? "open" : "")">
+
+        <!-- Содержимое появляется после нажатия на шестерёнку -->
+        <div class="settings-capsule-content">
+
+            <!-- Light / Dark -->
+            <div class="theme-segment">
+
+                <!-- Light Mode -->
+                <button type="button"
+                        class="theme-choice @(!darkTheme ? "active" : "")"
+                        @onclick="SetLightTheme">
+
+                    <span class="sun-icon">☀</span>
+
+                </button>
+
+
+                <!-- Dark Mode -->
+                <button type="button"
+                        class="theme-choice @(darkTheme ? "active" : "")"
+                        @onclick="SetDarkTheme">
+
+                    <span class="moon-icon">☾</span>
+
+                </button>
+
+            </div>
+
+
+            <div class="settings-divider"></div>
+
+
+            <!-- Language -->
+            <select class="settings-language-select"
+                    @bind="currentLanguage"
+                    @bind:after="ChangeLanguage">
+
+                <option value="en">English</option>
+                <option value="ru">Русский</option>
+                <option value="he">עברית</option>
+
+            </select>
+
+        </div>
+
+
+        <!-- Settings button -->
+        <button type="button"
+                class="settings-gear-button"
+                @onclick="ToggleSettingsMenu">
+
+            <svg class="settings-gear-icon"
+                 viewBox="0 0 24 24"
+                 fill="none">
+
+                <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35A1.724 1.724 0 0 0 5.382 7.75c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.573-1.066Z"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round" />
+
+                <path d="M12 15.25A3.25 3.25 0 1 0 12 8.75a3.25 3.25 0 0 0 0 6.5Z"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round" />
+
+            </svg>
+
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- ========================================= -->
+<!-- REGISTER PAGE -->
+<!-- ========================================= -->
+
+<div class="auth-layout @(darkTheme ? "dark" : "")">
+
+    <!-- Blockchain decoration -->
+    <div class="blockchain-art" aria-hidden="true">
+
+        <div class="chain-block block-one">01</div>
+
+        <div class="chain-line"></div>
+
+        <div class="chain-block block-two">02</div>
+
+        <div class="chain-line"></div>
+
+        <div class="chain-block block-three">03</div>
+
+    </div>
+
+
+    <!-- Register card -->
+    <div class="login-container">
+
+        <div class="security-badge">
+
+            <span class="security-icon">◇</span>
+
+            <span>@securityText</span>
+
+        </div>
+
+
+        <h1>@title</h1>
+
+        <p class="subtitle">
+            @subtitle
+        </p>
+
+
+        <form @onsubmit="RegisterUser"
+              @onsubmit:preventDefault="true">
+
+            <!-- Username -->
+            <label for="username"
+                   dir="@(currentLanguage == "he" ? "rtl" : "ltr")">
+                @usernameLabel
+            </label>
+
+            <input type="text"
+                   id="username"
+                   @bind="username"
+                   dir="@(currentLanguage == "he" ? "rtl" : "ltr")"
+                   placeholder="@usernamePlaceholder"
+                   required />
+
+
+            <!-- Email -->
+            <label for="email"
+                   dir="@(currentLanguage == "he" ? "rtl" : "ltr")">
+                @emailLabel
+            </label>
+
+            <input type="email"
+                   id="email"
+                   @bind="email"
+                   dir="@(currentLanguage == "he" ? "rtl" : "ltr")"
+                   placeholder="@emailPlaceholder"
+                   required />
+
+
+            <!-- Password -->
+            <label for="password"
+                   dir="@(currentLanguage == "he" ? "rtl" : "ltr")">
+                @passwordLabel
+            </label>
+
+            <input type="password"
+                   id="password"
+                   @bind="password"
+                   dir="@(currentLanguage == "he" ? "rtl" : "ltr")"
+                   placeholder="@passwordPlaceholder"
+                   required />
+
+
+            <!-- Confirm Password -->
+            <label for="confirmPassword"
+                   dir="@(currentLanguage == "he" ? "rtl" : "ltr")">
+                @confirmPasswordLabel
+            </label>
+
+            <input type="password"
+                   id="confirmPassword"
+                   @bind="confirmPassword"
+                   dir="@(currentLanguage == "he" ? "rtl" : "ltr")"
+                   placeholder="@confirmPasswordPlaceholder"
+                   required />
+
+
+            <button id="registerButton"
+                    type="submit">
+                @registerButtonText
+            </button>
+
+        </form>
+
+
+        <p id="message">@message</p>
+
+
+        <p class="switch-page">
+
+            <span>@loginQuestion</span>
+
+            <a href="/">@loginLinkText</a>
+
+        </p>
+
+    </div>
+
+</div>
+
+
+@code
+{
+    // ==========================================
+    // LANGUAGE
+    // ==========================================
+
+    // Язык хранится в общем AppState.
+    private string currentLanguage
+    {
+        get => AppState.Language;
+        set => AppState.Language = value;
+    }
+
+
+    // ==========================================
+    // THEME
+    // ==========================================
+
+    // Тема тоже хранится в общем AppState.
+    private bool darkTheme
+    {
+        get => AppState.DarkTheme;
+        set => AppState.DarkTheme = value;
+    }
+
+
+    // Показывать или скрывать Settings Capsule.
+    private bool showSettingsMenu = false;
+
+
+    // ==========================================
+    // FORM DATA
+    // ==========================================
+
+    private string username = "";
+
+    private string email = "";
+
+    private string password = "";
+
+    private string confirmPassword = "";
+
+
+    // ==========================================
+    // MESSAGE
+    // ==========================================
+
+    private string message = "";
+
+
+    // ==========================================
+    // PAGE TEXT
+    // ==========================================
+
+    private string securityText = "BLOCKCHAIN SECURED";
+
+    private string title = "Create Account";
+
+    private string subtitle = "Create your secure identity";
+
+    private string usernameLabel = "Username";
+
+    private string emailLabel = "Email";
+
+    private string passwordLabel = "Password";
+
+    private string confirmPasswordLabel = "Confirm Password";
+
+    private string usernamePlaceholder = "Enter username";
+
+    private string emailPlaceholder = "Enter email";
+
+    private string passwordPlaceholder = "Enter password";
+
+    private string confirmPasswordPlaceholder = "Repeat password";
+
+    private string registerButtonText = "Sign Up";
+
+    private string loginQuestion = "Already have an account?";
+
+    private string loginLinkText = "Login";
+
+
+    // ==========================================
+    // PAGE START
+    // ==========================================
+
+    // Вызывается автоматически при открытии Register.
+    protected override void OnInitialized()
+    {
+        // Применяем язык из AppState.
+        ChangeLanguage();
+    }
+
+
+    // ==========================================
+    // SETTINGS
+    // ==========================================
+
+    // Открывает или закрывает Settings Capsule.
+    private void ToggleSettingsMenu()
+    {
+        showSettingsMenu = !showSettingsMenu;
+    }
+
+
+    // Включает Light Mode.
+    private void SetLightTheme()
+    {
+        darkTheme = false;
+    }
+
+
+    // Включает Dark Mode.
+    private void SetDarkTheme()
+    {
+        darkTheme = true;
+    }
+
+
+    // ==========================================
+    // LANGUAGE
+    // ==========================================
+
+    private void ChangeLanguage()
+    {
+        if (currentLanguage == "ru")
+        {
+            securityText = "ЗАЩИЩЕНО BLOCKCHAIN";
+
+            title = "Создать аккаунт";
+
+            subtitle = "Создайте защищённую учётную запись";
+
+            usernameLabel = "Имя пользователя";
+
+            emailLabel = "Электронная почта";
+
+            passwordLabel = "Пароль";
+
+            confirmPasswordLabel = "Повторите пароль";
+
+            usernamePlaceholder = "Введите имя пользователя";
+
+            emailPlaceholder = "Введите email";
+
+            passwordPlaceholder = "Введите пароль";
+
+            confirmPasswordPlaceholder = "Повторите пароль";
+
+            registerButtonText = "Зарегистрироваться";
+
+            loginQuestion = "Уже есть аккаунт?";
+
+            loginLinkText = "Войти";
+        }
+
+        else if (currentLanguage == "he")
+        {
+            securityText = "מאובטח באמצעות BLOCKCHAIN";
+
+            title = "יצירת חשבון";
+
+            subtitle = "צור חשבון מאובטח";
+
+            usernameLabel = "שם משתמש";
+
+            emailLabel = "אימייל";
+
+            passwordLabel = "סיסמה";
+
+            confirmPasswordLabel = "אימות סיסמה";
+
+            usernamePlaceholder = "הכנס שם משתמש";
+
+            emailPlaceholder = "הכנס אימייל";
+
+            passwordPlaceholder = "הכנס סיסמה";
+
+            confirmPasswordPlaceholder = "הכנס שוב את הסיסמה";
+
+            registerButtonText = "הרשמה";
+
+            loginQuestion = "כבר יש לך חשבון?";
+
+            loginLinkText = "התחברות";
+        }
+
+        else
+        {
+            securityText = "BLOCKCHAIN SECURED";
+
+            title = "Create Account";
+
+            subtitle = "Create your secure identity";
+
+            usernameLabel = "Username";
+
+            emailLabel = "Email";
+
+            passwordLabel = "Password";
+
+            confirmPasswordLabel = "Confirm Password";
+
+            usernamePlaceholder = "Enter username";
+
+            emailPlaceholder = "Enter email";
+
+            passwordPlaceholder = "Enter password";
+
+            confirmPasswordPlaceholder = "Repeat password";
+
+            registerButtonText = "Sign Up";
+
+            loginQuestion = "Already have an account?";
+
+            loginLinkText = "Login";
+        }
+
+
+        // Старое сообщение убираем после смены языка.
+        message = "";
+    }
+
+
+    // ==========================================
+    // REGISTER
+    // ==========================================
+
+    private async Task RegisterUser()
+    {
+        // Сначала проверяем,
+        // совпадают ли Password и Confirm Password.
+        if (password != confirmPassword)
+        {
+            if (currentLanguage == "ru")
+            {
+                message = "Пароли не совпадают";
+            }
+            else if (currentLanguage == "he")
+            {
+                message = "הסיסמאות אינן תואמות";
+            }
+            else
+            {
+                message = "Passwords do not match";
+            }
+
+            return;
+        }
+
+
+        try
+        {
+            // Получаем HttpClient.
+            var client =
+                HttpClientFactory.CreateClient();
+
+
+            // Создаём данные,
+            // которые отправим Server.
+            var registerRequest = new
+            {
+                Username = username,
+                Email = email,
+                Password = password
+            };
+
+
+            // Отправляем POST-запрос
+            // на Register API.
+            var response =
+                await client.PostAsJsonAsync(
+                    "http://localhost:5000/api/register",
+                    registerRequest
+                );
+
+
+            // Регистрация прошла успешно.
+            if (response.IsSuccessStatusCode)
+            {
+                if (currentLanguage == "ru")
+                {
+                    message = "Регистрация прошла успешно";
+                }
+                else if (currentLanguage == "he")
+                {
+                    message = "ההרשמה בוצעה בהצלחה";
+                }
+                else
+                {
+                    message = "Registration successful";
+                }
+            }
+
+
+            // Username или Email уже существует.
+            else if (response.StatusCode ==
+                     System.Net.HttpStatusCode.Conflict)
+            {
+                if (currentLanguage == "ru")
+                {
+                    message =
+                        "Имя пользователя или email уже существует";
+                }
+                else if (currentLanguage == "he")
+                {
+                    message =
+                        "שם המשתמש או האימייל כבר קיימים";
+                }
+                else
+                {
+                    message =
+                        "Username or email already exists";
+                }
+            }
+
+
+            // Другая ошибка Server.
+            else
+            {
+                if (currentLanguage == "ru")
+                {
+                    message = "Ошибка регистрации";
+                }
+                else if (currentLanguage == "he")
+                {
+                    message = "שגיאה בהרשמה";
+                }
+                else
+                {
+                    message = "Registration error";
+                }
+            }
+        }
+
+        catch
+        {
+            // Client не смог подключиться к Server.
+            if (currentLanguage == "ru")
+            {
+                message =
+                    "Не удалось подключиться к серверу";
+            }
+            else if (currentLanguage == "he")
+            {
+                message =
+                    "לא ניתן להתחבר לשרת";
+            }
+            else
+            {
+                message =
+                    "Cannot connect to server";
+            }
+        }
+    }
+}

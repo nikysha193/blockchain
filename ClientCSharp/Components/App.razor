@@ -1,0 +1,60 @@
+﻿<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <!-- Кодировка страницы -->
+    <meta charset="utf-8" />
+
+    <!-- Нормальное отображение на разных размерах экрана -->
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <!-- Корень нашего сайта -->
+    <base href="/" />
+
+
+    <!-- Стандартные стили Blazor -->
+    <link rel="stylesheet"
+          href="@Assets["lib/bootstrap/dist/css/bootstrap.min.css"]" />
+
+    <link rel="stylesheet"
+          href="@Assets["app.css"]" />
+
+    <link rel="stylesheet"
+          href="@Assets["ClientCSharp.styles.css"]" />
+
+
+    <!-- Наш основной CSS -->
+    <link rel="stylesheet"
+          href="style.css" />
+
+
+    <ImportMap />
+
+    <!-- Иконка вкладки браузера -->
+    <link rel="icon"
+          type="image/png"
+          href="favicon.png" />
+
+
+    <!-- Позволяет страницам менять содержимое head -->
+    <HeadOutlet />
+
+</head>
+
+
+<body>
+
+    <!-- Здесь Blazor показывает нужную страницу -->
+    <Routes />
+
+
+    <!-- JavaScript самого Blazor -->
+    <!-- Это НЕ наш JavaScript и удалять его нельзя -->
+    <script src="_framework/blazor.web.js"></script>
+
+</body>
+
+</html>
