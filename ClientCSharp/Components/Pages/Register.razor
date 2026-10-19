@@ -1,10 +1,10 @@
 @page "/register"
 @rendermode InteractiveServer
 
-@using System.Net.Http.Json
+@using System.Text.Json
+@using ClientCSharp.Network
 
 @inject AppState AppState
-@inject IHttpClientFactory HttpClientFactory
 
 <PageTitle>Register</PageTitle>
 
@@ -441,10 +441,11 @@
     }
 
 
-    // ==========================================
+       // ==========================================
     // REGISTER
     // ==========================================
 
+    // Вызывается при нажатии Sign Up.
     private async Task RegisterUser()
     {
         // Сначала проверяем,
@@ -453,68 +454,100 @@
         {
             if (currentLanguage == "ru")
             {
-                message = "Пароли не совпадают";
+                message =
+                    "Пароли не совпадают";
             }
             else if (currentLanguage == "he")
             {
-                message = "הסיסמאות אינן תואמות";
+                message =
+                    "הסיסמאות אינן תואמות";
             }
             else
             {
-                message = "Passwords do not match";
+                message =
+                    "Passwords do not match";
             }
 
             return;
         }
 
-
         try
         {
-            // Получаем HttpClient.
-            var client =
-                HttpClientFactory.CreateClient();
-
-
-            // Создаём данные,
-            // которые отправим Server.
+            // Создаём данные Register.
             var registerRequest = new
             {
-                Username = username,
-                Email = email,
-                Password = password
+                action = "register",
+                username = username,
+                email = email,
+                password = password
             };
 
+            // Превращаем объект в JSON-текст.
+            string json =
+                JsonSerializer.Serialize(registerRequest);
 
-            // Отправляем POST-запрос
-            // на Register API.
-            var response =
-                await client.PostAsJsonAsync(
-                    "http://localhost:5000/api/register",
-                    registerRequest
+            // Создаём наш собственный Client Socket.
+            var socket =
+                new ClientSocket();
+
+            // Отправляем Register через TCP Socket
+            // и получаем ответ Server.
+            string response =
+                await socket.SendAsync(json);
+
+            // Превращаем JSON-ответ Server
+            // обратно в C# объект.
+            var data =
+                JsonSerializer.Deserialize<SocketResponse>(
+                    response,
+                    new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    }
                 );
 
-
-            // Регистрация прошла успешно.
-            if (response.IsSuccessStatusCode)
+            // Регистрация успешна.
+            if (data?.Success == true)
             {
                 if (currentLanguage == "ru")
                 {
-                    message = "Регистрация прошла успешно";
+                    message =
+                        "Регистрация прошла успешно";
                 }
                 else if (currentLanguage == "he")
                 {
-                    message = "ההרשמה בוצעה בהצלחה";
+                    message =
+                        "ההרשמה בוצעה בהצלחה";
                 }
                 else
                 {
-                    message = "Registration successful";
+                    message =
+                        "Registration successful";
                 }
             }
 
+            // Одно или несколько полей пустые.
+            else if (data?.Status == 400)
+            {
+                if (currentLanguage == "ru")
+                {
+                    message =
+                        "Заполните все обязательные поля";
+                }
+                else if (currentLanguage == "he")
+                {
+                    message =
+                        "יש למלא את כל שדות החובה";
+                }
+                else
+                {
+                    message =
+                        "All fields are required";
+                }
+            }
 
             // Username или Email уже существует.
-            else if (response.StatusCode ==
-                     System.Net.HttpStatusCode.Conflict)
+            else if (data?.Status == 409)
             {
                 if (currentLanguage == "ru")
                 {
@@ -533,28 +566,30 @@
                 }
             }
 
-
-            // Другая ошибка Server.
+            // Server вернул другую ошибку.
             else
             {
                 if (currentLanguage == "ru")
                 {
-                    message = "Ошибка регистрации";
+                    message =
+                        "Ошибка регистрации";
                 }
                 else if (currentLanguage == "he")
                 {
-                    message = "שגיאה בהרשמה";
+                    message =
+                        "שגיאה בהרשמה";
                 }
                 else
                 {
-                    message = "Registration error";
+                    message =
+                        "Registration error";
                 }
             }
         }
-
         catch
         {
-            // Client не смог подключиться к Server.
+            // Client не смог подключиться
+            // к нашему TCP Server.
             if (currentLanguage == "ru")
             {
                 message =
@@ -571,5 +606,20 @@
                     "Cannot connect to server";
             }
         }
+    }
+
+
+    // ==========================================
+    // SERVER RESPONSE
+    // ==========================================
+
+    // Описывает JSON-ответ нашего TCP Server.
+    private class SocketResponse
+    {
+        public bool Success { get; set; }
+
+        public int Status { get; set; }
+
+        public string Message { get; set; } = "";
     }
 }

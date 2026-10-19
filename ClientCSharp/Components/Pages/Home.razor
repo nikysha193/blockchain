@@ -1,9 +1,8 @@
 ﻿@page "/"
 @rendermode InteractiveServer
 
-@using System.Net.Http.Json
-
-@inject IHttpClientFactory HttpClientFactory
+@using System.Text.Json
+@using ClientCSharp.Network
 @inject AppState AppState
 
 <PageTitle>Login</PageTitle>
@@ -465,7 +464,6 @@
         message = "";
     }
 
-
     // ==========================================
     // LOGIN
     // ==========================================
@@ -475,72 +473,71 @@
     {
         try
         {
-            // Получаем HttpClient.
-            var client =
-                HttpClientFactory.CreateClient();
-
-
-            // Создаём объект с данными Login.
+            // Создаём данные Login.
             var loginRequest = new
             {
-                Username = username,
-                Password = password
+                action = "login",
+                username = username,
+                password = password
             };
 
+            // Превращаем объект в JSON-текст.
+            string json =
+                JsonSerializer.Serialize(loginRequest);
 
-            // Отправляем Username и Password
-            // в Login API нашего Server.
-            var response =
-                await client.PostAsJsonAsync(
-                    "http://localhost:5000/api/login",
-                    loginRequest
+            // Создаём наш собственный Client Socket.
+            var socket =
+                new ClientSocket();
+
+            // Отправляем Login через TCP Socket
+            // и получаем ответ Server.
+            string response =
+                await socket.SendAsync(json);
+
+            // Превращаем JSON-ответ Server
+            // обратно в C# объект.
+            var data =
+                JsonSerializer.Deserialize<SocketResponse>(
+                    response,
+                    new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    }
                 );
 
-
-            // Успешный ответ Server.
-            if (response.IsSuccessStatusCode)
+            // Login успешный.
+            if (data?.Success == true)
             {
-                var data =
-                    await response.Content
-                        .ReadFromJsonAsync<LoginResponse>();
-
-
                 if (currentLanguage == "ru")
                 {
                     message =
                         "Вход выполнен успешно";
                 }
-
                 else if (currentLanguage == "he")
                 {
                     message =
                         "ההתחברות בוצעה בהצלחה";
                 }
-
                 else
                 {
                     message =
-                        data?.Message ?? "Login successful";
+                        "Login successful";
                 }
             }
 
-
-            // Неправильный Username или Password.
-            else if (response.StatusCode ==
-                     System.Net.HttpStatusCode.Unauthorized)
+            // Username или Password неправильный.
+            else if (data?.Status == 401)
             {
                 if (currentLanguage == "ru")
                 {
                     message =
                         "Неверное имя пользователя или пароль";
                 }
-
                 else if (currentLanguage == "he")
                 {
                     message =
-                        "שם המשתמש או הסיסמה שגויים";
+                        "שם משתמש או סיסמה שגויים";
                 }
-
                 else
                 {
                     message =
@@ -548,8 +545,7 @@
                 }
             }
 
-
-            // Другая ошибка Server.
+            // Server вернул другую ошибку.
             else
             {
                 if (currentLanguage == "ru")
@@ -557,13 +553,11 @@
                     message =
                         "Ошибка сервера";
                 }
-
                 else if (currentLanguage == "he")
                 {
                     message =
                         "שגיאת שרת";
                 }
-
                 else
                 {
                     message =
@@ -571,24 +565,20 @@
                 }
             }
         }
-
         catch
         {
-            // Client вообще не смог
-            // подключиться к Server.
-
+            // Client не смог подключиться
+            // к нашему TCP Server.
             if (currentLanguage == "ru")
             {
                 message =
                     "Не удалось подключиться к серверу";
             }
-
             else if (currentLanguage == "he")
             {
                 message =
                     "לא ניתן להתחבר לשרת";
             }
-
             else
             {
                 message =
@@ -602,9 +592,13 @@
     // SERVER RESPONSE
     // ==========================================
 
-    // Описывает JSON-ответ Login API.
-    private class LoginResponse
+    // Описывает JSON-ответ нашего TCP Server.
+    private class SocketResponse
     {
+        public bool Success { get; set; }
+
+        public int Status { get; set; }
+
         public string Message { get; set; } = "";
     }
 }
