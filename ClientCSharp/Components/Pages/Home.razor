@@ -3,7 +3,13 @@
 
 @using System.Text.Json
 @using ClientCSharp.Network
+@using ClientCSharp.Auth
+@using Microsoft.AspNetCore.Components.Authorization
+
 @inject AppState AppState
+@inject LoginTicketStore LoginTicketStore
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>Login</PageTitle>
 
@@ -168,7 +174,8 @@
 
                 <label class="remember-me">
 
-                    <!-- Remember Me пока только хранит состояние checkbox -->
+                    <!-- Управляет тем,
+                         останется ли Cookie после закрытия браузера -->
                     <input type="checkbox"
                            @bind="rememberMe" />
 
@@ -249,8 +256,8 @@
 
     private string password = "";
 
-
-    // Remember Me пока ещё не сохраняет Username.
+    // false = Cookie только на текущую сессию.
+    // true = Cookie сохраняется после закрытия браузера.
     private bool rememberMe = false;
 
 
@@ -265,16 +272,20 @@
     // PAGE TEXT
     // ==========================================
 
-    private string securityText = "BLOCKCHAIN SECURED";
+    private string securityText =
+        "BLOCKCHAIN SECURED";
 
-    private string title = "Secure Documents";
+    private string title =
+        "Secure Documents";
 
     private string subtitle =
         "Protected access to your documents";
 
-    private string usernameLabel = "Username";
+    private string usernameLabel =
+        "Username";
 
-    private string passwordLabel = "Password";
+    private string passwordLabel =
+        "Password";
 
     private string usernamePlaceholder =
         "Enter username";
@@ -303,12 +314,53 @@
     // ==========================================
 
     // Вызывается автоматически при открытии Login.
-    protected override void OnInitialized()
+   protected override async Task OnInitializedAsync()
+{
+    // Получаем информацию о пользователе
+    // из Authentication Cookie.
+    var authenticationState =
+        await AuthenticationStateProvider
+            .GetAuthenticationStateAsync();
+
+    var user =
+        authenticationState.User;
+
+
+    // Если пользователь уже вошёл,
+    // читаем сохранённые настройки из Cookie.
+    if (user.Identity?.IsAuthenticated == true)
     {
-        // Применяем язык,
-        // который уже находится в AppState.
-        ChangeLanguage();
+        string? savedLanguage =
+            user.FindFirst("language")?.Value;
+
+        string? savedDarkTheme =
+            user.FindFirst("darkTheme")?.Value;
+
+
+        // Возвращаем сохранённый язык.
+        if (!string.IsNullOrWhiteSpace(savedLanguage))
+        {
+            currentLanguage =
+                savedLanguage;
+        }
+
+
+        // Возвращаем сохранённую тему.
+        if (bool.TryParse(
+                savedDarkTheme,
+                out bool parsedDarkTheme
+            ))
+        {
+            darkTheme =
+                parsedDarkTheme;
+        }
     }
+
+
+    // После восстановления настроек
+    // ставим правильный текст страницы.
+    ChangeLanguage();
+}
 
 
     // ==========================================
@@ -318,7 +370,8 @@
     // Открывает или закрывает Settings Capsule.
     private void ToggleSettingsMenu()
     {
-        showSettingsMenu = !showSettingsMenu;
+        showSettingsMenu =
+            !showSettingsMenu;
     }
 
 
@@ -345,9 +398,11 @@
     {
         if (currentLanguage == "ru")
         {
-            securityText = "ЗАЩИЩЕНО BLOCKCHAIN";
+            securityText =
+                "ЗАЩИЩЕНО BLOCKCHAIN";
 
-            title = "Безопасные документы";
+            title =
+                "Безопасные документы";
 
             subtitle =
                 "Защищённый доступ к вашим документам";
@@ -464,6 +519,7 @@
         message = "";
     }
 
+
     // ==========================================
     // LOGIN
     // ==========================================
@@ -481,21 +537,27 @@
                 password = password
             };
 
-            // Превращаем объект в JSON-текст.
+
+            // Превращаем объект в JSON.
             string json =
-                JsonSerializer.Serialize(loginRequest);
+                JsonSerializer.Serialize(
+                    loginRequest
+                );
+
 
             // Создаём наш собственный Client Socket.
             var socket =
                 new ClientSocket();
+
 
             // Отправляем Login через TCP Socket
             // и получаем ответ Server.
             string response =
                 await socket.SendAsync(json);
 
-            // Превращаем JSON-ответ Server
-            // обратно в C# объект.
+
+            // JSON-ответ Server
+            // превращаем обратно в C# объект.
             var data =
                 JsonSerializer.Deserialize<SocketResponse>(
                     response,
@@ -505,7 +567,11 @@
                     }
                 );
 
-            // Login успешный.
+
+            // ======================================
+            // LOGIN SUCCESS
+            // ======================================
+
             if (data?.Success == true)
             {
                 if (currentLanguage == "ru")
@@ -523,9 +589,37 @@
                     message =
                         "Login successful";
                 }
+
+
+                // Создаём одноразовый Ticket.
+                // В нём хранятся:
+                // Username и Remember Me.
+                string ticket =
+                    LoginTicketStore.CreateTicket(
+                        username,
+                        rememberMe,
+                        currentLanguage,
+                        darkTheme
+                    );
+
+
+                // Переходим на специальный адрес.
+                // Program.cs проверит Ticket
+                // и создаст Authentication Cookie.
+                NavigationManager.NavigateTo(
+                    "/auth/login?ticket=" +
+                    Uri.EscapeDataString(ticket),
+                    forceLoad: true
+                );
+
+                return;
             }
 
-            // Username или Password неправильный.
+
+            // ======================================
+            // WRONG USERNAME / PASSWORD
+            // ======================================
+
             else if (data?.Status == 401)
             {
                 if (currentLanguage == "ru")
@@ -545,7 +639,11 @@
                 }
             }
 
-            // Server вернул другую ошибку.
+
+            // ======================================
+            // OTHER SERVER ERROR
+            // ======================================
+
             else
             {
                 if (currentLanguage == "ru")
@@ -565,6 +663,7 @@
                 }
             }
         }
+
         catch
         {
             // Client не смог подключиться
