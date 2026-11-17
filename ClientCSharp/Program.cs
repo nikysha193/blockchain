@@ -106,26 +106,28 @@ app.MapGet(
         // Записываем Username внутрь
         // защищённой authentication cookie.
         var claims =
-            new List<Claim>
-            {
-                // Кто вошёл.
-                new Claim(
-                    ClaimTypes.Name,
-                    loginTicket.Username
-                ),
+    new List<Claim>
+    {
+        new Claim(
+            ClaimTypes.Name,
+            loginTicket.Username
+        ),
 
-                // Какой язык был выбран.
-                new Claim(
-                    "language",
-                    loginTicket.Language
-                ),
+        new Claim(
+            "language",
+            loginTicket.Language
+        ),
 
-                // Какая тема была выбрана.
-                new Claim(
-                    "darkTheme",
-                    loginTicket.DarkTheme.ToString()
-                )
-            };
+        new Claim(
+            "darkTheme",
+            loginTicket.DarkTheme.ToString()
+        ),
+
+        new Claim(
+            "sessionToken",
+            loginTicket.SessionToken
+        )
+    };
 
 
         var identity =

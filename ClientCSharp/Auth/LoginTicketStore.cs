@@ -5,15 +5,18 @@ public class LoginTicketStore
     private readonly Dictionary<string, LoginTicket> tickets =
         new Dictionary<string, LoginTicket>();
 
+
     public string CreateTicket(
         string username,
         bool rememberMe,
         string language,
-        bool darkTheme
+        bool darkTheme,
+        string sessionToken
     )
     {
         string ticket =
             Guid.NewGuid().ToString("N");
+
 
         tickets[ticket] =
             new LoginTicket
@@ -21,11 +24,14 @@ public class LoginTicketStore
                 Username = username,
                 RememberMe = rememberMe,
                 Language = language,
-                DarkTheme = darkTheme
+                DarkTheme = darkTheme,
+                SessionToken = sessionToken
             };
+
 
         return ticket;
     }
+
 
     public bool TryUseTicket(
         string ticket,
@@ -39,10 +45,15 @@ public class LoginTicketStore
         {
             loginTicket = savedTicket;
 
+
+            // Ticket одноразовый.
+            // После использования удаляем его.
             tickets.Remove(ticket);
+
 
             return true;
         }
+
 
         loginTicket = new LoginTicket();
 
@@ -60,4 +71,6 @@ public class LoginTicket
     public string Language { get; set; } = "en";
 
     public bool DarkTheme { get; set; }
+
+    public string SessionToken { get; set; } = "";
 }

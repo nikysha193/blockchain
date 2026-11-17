@@ -1,4 +1,5 @@
 ﻿@page "/"
+
 @rendermode InteractiveServer
 
 @using System.Text.Json
@@ -10,6 +11,7 @@
 @inject LoginTicketStore LoginTicketStore
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
+
 
 <PageTitle>Login</PageTitle>
 
@@ -104,17 +106,24 @@
 <div class="auth-layout @(darkTheme ? "dark" : "")">
 
     <!-- Blockchain decoration -->
-    <div class="blockchain-art" aria-hidden="true">
+    <div class="blockchain-art"
+         aria-hidden="true">
 
-        <div class="chain-block block-one">01</div>
+        <div class="chain-block block-one">
+            01
+        </div>
 
         <div class="chain-line"></div>
 
-        <div class="chain-block block-two">02</div>
+        <div class="chain-block block-two">
+            02
+        </div>
 
         <div class="chain-line"></div>
 
-        <div class="chain-block block-three">03</div>
+        <div class="chain-block block-three">
+            03
+        </div>
 
     </div>
 
@@ -124,14 +133,21 @@
 
         <div class="security-badge">
 
-            <span class="security-icon">◇</span>
+            <span class="security-icon">
+                ◇
+            </span>
 
-            <span>@securityText</span>
+            <span>
+                @securityText
+            </span>
 
         </div>
 
 
-        <h1>@title</h1>
+        <h1>
+            @title
+        </h1>
+
 
         <p class="subtitle">
             @subtitle
@@ -145,8 +161,11 @@
             <!-- Username -->
             <label for="username"
                    dir="@(currentLanguage == "he" ? "rtl" : "ltr")">
+
                 @usernameLabel
+
             </label>
+
 
             <input type="text"
                    id="username"
@@ -159,8 +178,11 @@
             <!-- Password -->
             <label for="password"
                    dir="@(currentLanguage == "he" ? "rtl" : "ltr")">
+
                 @passwordLabel
+
             </label>
+
 
             <input type="password"
                    id="password"
@@ -179,7 +201,9 @@
                     <input type="checkbox"
                            @bind="rememberMe" />
 
-                    <span>@rememberText</span>
+                    <span>
+                        @rememberText
+                    </span>
 
                 </label>
 
@@ -193,19 +217,25 @@
 
             <button id="loginButton"
                     type="submit">
+
                 @loginButtonText
+
             </button>
 
         </form>
 
 
         <!-- Результат Login -->
-        <p id="message">@message</p>
+        <p id="message">
+            @message
+        </p>
 
 
         <p class="switch-page">
 
-            <span>@registerQuestion</span>
+            <span>
+                @registerQuestion
+            </span>
 
             <a href="/register">
                 @registerLinkText
@@ -228,6 +258,7 @@
     private string currentLanguage
     {
         get => AppState.Language;
+
         set => AppState.Language = value;
     }
 
@@ -240,6 +271,7 @@
     private bool darkTheme
     {
         get => AppState.DarkTheme;
+
         set => AppState.DarkTheme = value;
     }
 
@@ -255,6 +287,7 @@
     private string username = "";
 
     private string password = "";
+
 
     // false = Cookie только на текущую сессию.
     // true = Cookie сохраняется после закрытия браузера.
@@ -314,53 +347,57 @@
     // ==========================================
 
     // Вызывается автоматически при открытии Login.
-   protected override async Task OnInitializedAsync()
-{
-    // Получаем информацию о пользователе
-    // из Authentication Cookie.
-    var authenticationState =
-        await AuthenticationStateProvider
-            .GetAuthenticationStateAsync();
-
-    var user =
-        authenticationState.User;
-
-
-    // Если пользователь уже вошёл,
-    // читаем сохранённые настройки из Cookie.
-    if (user.Identity?.IsAuthenticated == true)
+    protected override async Task OnInitializedAsync()
     {
-        string? savedLanguage =
-            user.FindFirst("language")?.Value;
+        // Получаем информацию о пользователе
+        // из Authentication Cookie.
+        var authenticationState =
+            await AuthenticationStateProvider
+                .GetAuthenticationStateAsync();
 
-        string? savedDarkTheme =
-            user.FindFirst("darkTheme")?.Value;
+
+        var user =
+            authenticationState.User;
 
 
-        // Возвращаем сохранённый язык.
-        if (!string.IsNullOrWhiteSpace(savedLanguage))
+        // Если пользователь уже вошёл,
+        // читаем сохранённые настройки из Cookie.
+        if (user.Identity?.IsAuthenticated == true)
         {
-            currentLanguage =
-                savedLanguage;
+            string? savedLanguage =
+                user.FindFirst("language")?.Value;
+
+
+            string? savedDarkTheme =
+                user.FindFirst("darkTheme")?.Value;
+
+
+            // Возвращаем сохранённый язык.
+            if (!string.IsNullOrWhiteSpace(
+                    savedLanguage
+                ))
+            {
+                currentLanguage =
+                    savedLanguage;
+            }
+
+
+            // Возвращаем сохранённую тему.
+            if (bool.TryParse(
+                    savedDarkTheme,
+                    out bool parsedDarkTheme
+                ))
+            {
+                darkTheme =
+                    parsedDarkTheme;
+            }
         }
 
 
-        // Возвращаем сохранённую тему.
-        if (bool.TryParse(
-                savedDarkTheme,
-                out bool parsedDarkTheme
-            ))
-        {
-            darkTheme =
-                parsedDarkTheme;
-        }
+        // После восстановления настроек
+        // ставим правильный текст страницы.
+        ChangeLanguage();
     }
-
-
-    // После восстановления настроек
-    // ставим правильный текст страницы.
-    ChangeLanguage();
-}
 
 
     // ==========================================
@@ -579,11 +616,13 @@
                     message =
                         "Вход выполнен успешно";
                 }
+
                 else if (currentLanguage == "he")
                 {
                     message =
                         "ההתחברות בוצעה בהצלחה";
                 }
+
                 else
                 {
                     message =
@@ -592,18 +631,26 @@
 
 
                 // Создаём одноразовый Ticket.
-                // В нём хранятся:
-                // Username и Remember Me.
+                //
+                // В нём временно хранятся:
+                //
+                // Username
+                // Remember Me
+                // Language
+                // Dark Theme
+                // Session Token
                 string ticket =
                     LoginTicketStore.CreateTicket(
                         username,
                         rememberMe,
                         currentLanguage,
-                        darkTheme
+                        darkTheme,
+                        data.SessionToken
                     );
 
 
                 // Переходим на специальный адрес.
+                //
                 // Program.cs проверит Ticket
                 // и создаст Authentication Cookie.
                 NavigationManager.NavigateTo(
@@ -611,6 +658,7 @@
                     Uri.EscapeDataString(ticket),
                     forceLoad: true
                 );
+
 
                 return;
             }
@@ -627,11 +675,13 @@
                     message =
                         "Неверное имя пользователя или пароль";
                 }
+
                 else if (currentLanguage == "he")
                 {
                     message =
                         "שם משתמש או סיסמה שגויים";
                 }
+
                 else
                 {
                     message =
@@ -651,11 +701,13 @@
                     message =
                         "Ошибка сервера";
                 }
+
                 else if (currentLanguage == "he")
                 {
                     message =
                         "שגיאת שרת";
                 }
+
                 else
                 {
                     message =
@@ -668,16 +720,19 @@
         {
             // Client не смог подключиться
             // к нашему TCP Server.
+
             if (currentLanguage == "ru")
             {
                 message =
                     "Не удалось подключиться к серверу";
             }
+
             else if (currentLanguage == "he")
             {
                 message =
                     "לא ניתן להתחבר לשרת";
             }
+
             else
             {
                 message =
@@ -699,5 +754,7 @@
         public int Status { get; set; }
 
         public string Message { get; set; } = "";
+
+        public string SessionToken { get; set; } = "";
     }
 }

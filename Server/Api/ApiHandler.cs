@@ -2,12 +2,17 @@ using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using System.Text.Json;
 using Npgsql;
+using Server.Auth;
 
 namespace Server.Api;
 
 public class ApiHandler
 {
     private readonly string connectionString;
+
+    // Хранилище активных Session Token.
+    private readonly SessionStore sessionStore =
+        new SessionStore();
 
 
     // ==========================================
@@ -93,6 +98,10 @@ public class ApiHandler
                 .GetString() ?? "";
 
 
+        username = username.Trim();
+
+
+        // Проверяем, что поля не пустые.
         if (string.IsNullOrWhiteSpace(username) ||
             string.IsNullOrWhiteSpace(password))
         {
@@ -106,6 +115,7 @@ public class ApiHandler
         }
 
 
+        // Подключаемся к PostgreSQL.
         await using var connection =
             new NpgsqlConnection(
                 connectionString
@@ -114,8 +124,12 @@ public class ApiHandler
         await connection.OpenAsync();
 
 
+        // Теперь получаем сразу:
+        //
+        // 1. ID пользователя
+        // 2. Hash его пароля
         string sql = @"
-            SELECT password_hash
+            SELECT id, password_hash
             FROM users
             WHERE username = @username;
         ";
@@ -134,12 +148,15 @@ public class ApiHandler
         );
 
 
-        var result =
-            await command.ExecuteScalarAsync();
+        // ExecuteReader нужен,
+        // потому что мы получаем несколько значений.
+        await using var reader =
+            await command.ExecuteReaderAsync();
 
 
-        // Пользователь не найден.
-        if (result == null)
+        // Если ReadAsync вернул false,
+        // пользователь не найден.
+        if (!await reader.ReadAsync())
         {
             return """
             {
@@ -151,10 +168,20 @@ public class ApiHandler
         }
 
 
+        // Первая колонка SELECT:
+        // id
+        int userId =
+            reader.GetInt32(0);
+
+
+        // Вторая колонка SELECT:
+        // password_hash
         string passwordHash =
-            result.ToString()!;
+            reader.GetString(1);
 
 
+        // Проверяем введённый Password
+        // с BCrypt Hash из PostgreSQL.
         bool passwordCorrect =
             BCrypt.Net.BCrypt.Verify(
                 password,
@@ -175,14 +202,37 @@ public class ApiHandler
         }
 
 
-        // Login успешный.
-        return """
-        {
-            "success": true,
-            "status": 200,
-            "message": "Login successful"
-        }
-        """;
+        // ======================================
+        // CREATE SESSION TOKEN
+        // ======================================
+
+        // Login правильный.
+        //
+        // Server создаёт Token
+        // и запоминает:
+        //
+        // Token -> UserId -> Username
+        string sessionToken =
+            sessionStore.CreateSession(
+                userId,
+                username
+            );
+
+
+        // Возвращаем Client:
+        //
+        // Login successful
+        // +
+        // Session Token
+        return JsonSerializer.Serialize(
+            new
+            {
+                success = true,
+                status = 200,
+                message = "Login successful",
+                sessionToken = sessionToken
+            }
+        );
     }
 
 
@@ -336,7 +386,6 @@ public class ApiHandler
         await connection.OpenAsync();
 
 
-        // Проверяем, существует ли такой Email.
         string sql = @"
             SELECT id
             FROM users
@@ -361,8 +410,8 @@ public class ApiHandler
             await command.ExecuteScalarAsync();
 
 
-        // Если пользователь существует,
-        // создаём код.
+        // Если Email существует,
+        // создаём Reset Code.
         if (result != null)
         {
             // Случайный 6-значный код.
@@ -393,9 +442,10 @@ public class ApiHandler
             // TEMPORARY DEVELOPMENT VERSION
             // ==================================
 
-            // Пока Email-сервис ещё не подключён,
-            // показываем код в консоли Server.
+            // Пока Email ещё не подключён,
+            // код показываем в консоли Server.
             Console.WriteLine();
+
             Console.WriteLine(
                 "=================================="
             );
@@ -424,8 +474,8 @@ public class ApiHandler
         }
 
 
-        // Даже если Email не существует,
-        // не сообщаем это напрямую.
+        // Не сообщаем,
+        // существует Email или нет.
         return """
         {
             "success": true,
@@ -471,7 +521,8 @@ public class ApiHandler
         }
 
 
-        // Ищем код для этого Email.
+        // Ищем Code,
+        // который относится к этому Email.
         if (!resetCodes.TryGetValue(
                 email,
                 out PasswordResetData? resetData
@@ -487,7 +538,8 @@ public class ApiHandler
         }
 
 
-        // Проверяем срок действия.
+        // Проверяем,
+        // не закончились ли 10 минут.
         if (DateTimeOffset.UtcNow >
             resetData.ExpiresAt)
         {
@@ -507,7 +559,7 @@ public class ApiHandler
         }
 
 
-        // Проверяем сам код.
+        // Проверяем сам Code.
         if (resetData.Code != code)
         {
             return """
@@ -520,11 +572,11 @@ public class ApiHandler
         }
 
 
-        // Код правильный.
+        // Code правильный.
         //
         // Пока его НЕ удаляем,
-        // потому что он ещё понадобится
-        // при окончательной смене пароля.
+        // потому что он нужен
+        // для Step 3.
         return """
         {
             "success": true,
@@ -626,7 +678,7 @@ public class ApiHandler
         }
 
 
-        // Проверяем код ещё раз.
+        // Проверяем Code ещё раз.
         if (resetData.Code != code)
         {
             return """
@@ -713,8 +765,8 @@ public class ApiHandler
         // DELETE USED CODE
         // ======================================
 
-        // После успешной смены пароля
-        // код больше использовать нельзя.
+        // После успешной смены Password
+        // Code становится недействительным.
         resetCodes.TryRemove(
             email,
             out _
@@ -737,11 +789,8 @@ public class ApiHandler
 
     private class PasswordResetData
     {
-        // 6-значный код.
         public string Code { get; set; } = "";
 
-
-        // Время окончания действия кода.
         public DateTimeOffset ExpiresAt { get; set; }
     }
 }
