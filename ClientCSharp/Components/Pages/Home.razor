@@ -1,4 +1,5 @@
 ﻿@page "/"
+@page "/login"
 
 @rendermode InteractiveServer
 
@@ -364,6 +365,24 @@
         // читаем сохранённые настройки из Cookie.
         if (user.Identity?.IsAuthenticated == true)
         {
+
+            string? savedSessionToken =
+    user.FindFirst(
+        "sessionToken"
+    )?.Value;
+
+
+if (!string.IsNullOrWhiteSpace(
+        savedSessionToken
+    ))
+{
+    NavigationManager.NavigateTo(
+        "/dashboard",
+        forceLoad: true
+    );
+
+    return;
+}
             string? savedLanguage =
                 user.FindFirst("language")?.Value;
 

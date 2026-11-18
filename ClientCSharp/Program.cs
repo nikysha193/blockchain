@@ -99,7 +99,7 @@ app.MapGet(
             out LoginTicket loginTicket
         ))
     {
-        return Results.Redirect("/");
+        return Results.Redirect("/dashboard");
     }
 
 
@@ -165,4 +165,16 @@ app.MapGet(
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
+
+app.MapGet(
+    "/auth/logout",
+    async (HttpContext context) =>
+    {
+        await context.SignOutAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme
+        );
+
+        return Results.Redirect("/login");
+    }
+);
 app.Run();

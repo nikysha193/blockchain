@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Hosting;
 using Server.Network;
 
+// var 
 var builder =
     Host.CreateApplicationBuilder(args);
 

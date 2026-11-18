@@ -1,0 +1,2179 @@
+@page "/dashboard"
+@rendermode InteractiveServer
+
+@using Microsoft.AspNetCore.Components.Authorization
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+
+<PageTitle>Secure Documents</PageTitle>
+
+
+<div class="dashboard">
+
+    <!-- ===================================================== -->
+    <!-- HEADER -->
+    <!-- ===================================================== -->
+
+    <header class="header">
+
+        <button class="brand"
+                @onclick="GoDashboard">
+
+            <svg class="ui-icon brand-logo"
+                 viewBox="0 0 24 24">
+
+                <path d="M12 2.8L19 5.8V11.1C19 15.7 16.2 19 12 21.2C7.8 19 5 15.7 5 11.1V5.8L12 2.8Z" />
+
+                <path d="M8.5 12L10.8 14.3L15.7 9.3" />
+
+            </svg>
+
+            <span>
+                SECURE DOCUMENTS
+            </span>
+
+        </button>
+
+
+        <nav class="nav">
+
+            <button class="active"
+                    @onclick="OpenSend">
+                Send
+            </button>
+
+            <button @onclick="OpenInbox">
+                Inbox
+            </button>
+
+            <button @onclick="OpenSent">
+                Sent
+            </button>
+
+            <button @onclick="OpenHistory">
+                History
+            </button>
+
+        </nav>
+
+
+        <!-- ACCOUNT -->
+
+        <div class="account-zone">
+
+            <div class="account-capsule @(showAccountMenu ? "open" : "")">
+
+                @if (showAccountMenu)
+                {
+                    <div class="account-actions">
+
+                        <button @onclick="OpenAccount">
+                            Account
+                        </button>
+
+                        <i></i>
+
+                        <button @onclick="OpenSettings">
+                            Settings
+                        </button>
+
+                        <i></i>
+
+                        <a href="/auth/logout">
+                            Log out
+                        </a>
+
+                    </div>
+                }
+
+
+                <button class="account-toggle"
+                        @onclick="ToggleAccountMenu">
+
+                    <span class="avatar">
+                        @GetUserLetter()
+                    </span>
+
+                    <span class="chevron @(showAccountMenu ? "up" : "")">
+                        ▾
+                    </span>
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </header>
+
+
+
+    <!-- ===================================================== -->
+    <!-- HERO -->
+    <!-- ===================================================== -->
+
+    <main>
+
+        <section class="hero">
+
+            <!-- ============================================= -->
+            <!-- SOFT BACKGROUND WAVES -->
+            <!-- НЕТ STROKE / НЕТ БЕЛЫХ ЛИНИЙ -->
+            <!-- ============================================= -->
+
+            <svg class="background-waves"
+                 viewBox="0 0 1600 500"
+                 preserveAspectRatio="none"
+                 aria-hidden="true">
+
+                <defs>
+
+                    <linearGradient id="wave1"
+                                    x1="0"
+                                    y1="0"
+                                    x2="1"
+                                    y2="0">
+
+                        <stop offset="0%"
+                              stop-color="#172938"
+                              stop-opacity="0.80" />
+
+                        <stop offset="50%"
+                              stop-color="#213d53"
+                              stop-opacity="0.52" />
+
+                        <stop offset="100%"
+                              stop-color="#1d3448"
+                              stop-opacity="0.22" />
+
+                    </linearGradient>
+
+
+                    <linearGradient id="wave2"
+                                    x1="0"
+                                    y1="0"
+                                    x2="1"
+                                    y2="0">
+
+                        <stop offset="0%"
+                              stop-color="#182b3c"
+                              stop-opacity="0.18" />
+
+                        <stop offset="55%"
+                              stop-color="#365f7d"
+                              stop-opacity="0.22" />
+
+                        <stop offset="100%"
+                              stop-color="#294a63"
+                              stop-opacity="0.34" />
+
+                    </linearGradient>
+
+
+                    <linearGradient id="wave3"
+                                    x1="0"
+                                    y1="0"
+                                    x2="1"
+                                    y2="0">
+
+                        <stop offset="0%"
+                              stop-color="#1b2d3d"
+                              stop-opacity="0" />
+
+                        <stop offset="70%"
+                              stop-color="#496f8d"
+                              stop-opacity="0.10" />
+
+                        <stop offset="100%"
+                              stop-color="#36566f"
+                              stop-opacity="0.28" />
+
+                    </linearGradient>
+
+                </defs>
+
+
+                <!-- MAIN LOWER WAVE -->
+
+                <path
+                    d="
+                    M -100 385
+                    C 145 465,
+                      330 445,
+                      520 385
+                    C 750 312,
+                      925 278,
+                      1100 225
+                    C 1280 170,
+                      1450 95,
+                      1700 -40
+                    L 1700 550
+                    L -100 550
+                    Z"
+                    fill="url(#wave1)" />
+
+
+                <!-- MIDDLE TRANSPARENT WAVE -->
+
+                <path
+                    d="
+                    M 0 430
+                    C 280 475,
+                      480 365,
+                      720 365
+                    C 930 365,
+                      1080 430,
+                      1300 340
+                    C 1470 270,
+                      1560 190,
+                      1700 90
+                    L 1700 550
+                    L 0 550
+                    Z"
+                    fill="url(#wave2)" />
+
+
+                <!-- RIGHT SOFT LAYER -->
+
+                <path
+                    d="
+                    M 790 500
+                    C 990 385,
+                      1160 300,
+                      1325 225
+                    C 1470 160,
+                      1585 90,
+                      1700 -15
+                    L 1700 550
+                    L 790 550
+                    Z"
+                    fill="url(#wave3)" />
+
+            </svg>
+
+
+            <!-- subtle right diagonal layer -->
+
+            <div class="right-accent"
+                 aria-hidden="true">
+            </div>
+
+
+
+            <div class="hero-inner">
+
+                <!-- ================================================= -->
+                <!-- LEFT -->
+                <!-- ================================================= -->
+
+                <div class="hero-copy">
+
+                    <div class="eyebrow">
+
+                        <svg class="ui-icon"
+                             viewBox="0 0 24 24">
+
+                            <rect x="6.5"
+                                  y="10"
+                                  width="11"
+                                  height="9.5"
+                                  rx="2" />
+
+                            <path d="M9 10V7.2C9 5.4 10.3 4.1 12 4.1C13.7 4.1 15 5.4 15 7.2V10" />
+
+                        </svg>
+
+
+                        <span>
+                            PROTECTED DOCUMENT WORKSPACE
+                        </span>
+
+
+                        <span class="eyebrow-line"></span>
+
+                    </div>
+
+
+                    <h1>
+                        Send documents securely.
+                    </h1>
+
+
+                    <p class="hero-description">
+                        A private and reliable way to send important documents
+                        with encryption and verifiable transfer history.
+                    </p>
+
+
+                    <div class="hero-actions">
+
+                        <button class="primary-button"
+                                @onclick="OpenSend">
+
+                            <svg class="ui-icon"
+                                 viewBox="0 0 24 24">
+
+                                <path d="M21 3L10 14" />
+
+                                <path d="M21 3L14 21L10 14L3 10L21 3Z" />
+
+                            </svg>
+
+
+                            <span>
+                                Send a document
+                            </span>
+
+
+                            <span class="button-arrow">
+                                →
+                            </span>
+
+                        </button>
+
+
+                        <button class="secondary-button"
+                                @onclick="OpenInbox">
+
+                            View inbox
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- ================================================= -->
+                <!-- RIGHT CARD -->
+                <!-- ================================================= -->
+
+                <div class="transfer-card">
+
+                    <div class="transfer-steps">
+
+
+                        <!-- DOCUMENT -->
+
+                        <div class="transfer-step">
+
+                            <div class="step-icon">
+
+                                <svg class="ui-icon"
+                                     viewBox="0 0 24 24">
+
+                                    <path d="M7 3H14L18 7V21H7V3Z" />
+
+                                    <path d="M14 3V8H18" />
+
+                                    <path d="M10 12H15" />
+
+                                    <path d="M10 15H15" />
+
+                                </svg>
+
+                            </div>
+
+                            <strong>
+                                Document
+                            </strong>
+
+                        </div>
+
+
+                        <span class="flow-arrow">
+                            →
+                        </span>
+
+
+
+                        <!-- ENCRYPTED -->
+
+                        <div class="transfer-step">
+
+                            <div class="step-icon">
+
+                                <svg class="ui-icon"
+                                     viewBox="0 0 24 24">
+
+                                    <rect x="6"
+                                          y="10"
+                                          width="12"
+                                          height="10"
+                                          rx="2" />
+
+                                    <path d="M9 10V7C9 5.3 10.3 4 12 4C13.7 4 15 5.3 15 7V10" />
+
+                                </svg>
+
+                            </div>
+
+                            <strong>
+                                Encrypted
+                            </strong>
+
+                        </div>
+
+
+                        <span class="flow-arrow">
+                            →
+                        </span>
+
+
+
+                        <!-- VERIFIED -->
+
+                        <div class="transfer-step">
+
+                            <div class="step-icon">
+
+                                <svg class="ui-icon"
+                                     viewBox="0 0 24 24">
+
+                                    <path d="M12 3L19 6V11C19 16 16 19 12 21C8 19 5 16 5 11V6L12 3Z" />
+
+                                    <path d="M8.5 12L10.8 14.3L15.8 9.3" />
+
+                                </svg>
+
+                            </div>
+
+                            <strong>
+                                Verified
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="transfer-divider"></div>
+
+
+                    <div class="secure-transfer">
+
+                        <div class="success-circle">
+                            ✓
+                        </div>
+
+
+                        <div class="secure-copy">
+
+                            <strong>
+                                Secure transfer
+                            </strong>
+
+                            <p>
+                                Your document is encrypted, securely transferred
+                                and verified.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ===================================================== -->
+        <!-- WHY -->
+        <!-- ===================================================== -->
+
+        <section class="why-section">
+
+            <div class="why-title">
+
+                <span></span>
+
+                <h2>
+                    Why choose Secure Documents?
+                </h2>
+
+                <span></span>
+
+            </div>
+
+
+
+            <div class="features">
+
+
+                <!-- PRIVACY -->
+
+                <article class="feature-card">
+
+                    <div class="feature-icon">
+
+                        <svg class="ui-icon"
+                             viewBox="0 0 24 24">
+
+                            <rect x="6"
+                                  y="10"
+                                  width="12"
+                                  height="10"
+                                  rx="2" />
+
+                            <path d="M9 10V7C9 5.3 10.3 4 12 4C13.7 4 15 5.3 15 7V10" />
+
+                        </svg>
+
+                    </div>
+
+
+                    <div>
+
+                        <h3>
+                            Privacy by design
+                        </h3>
+
+                        <p>
+                            Your documents are protected
+                            with strong encryption.
+                        </p>
+
+                    </div>
+
+                </article>
+
+
+
+                <!-- TRUST -->
+
+                <article class="feature-card">
+
+                    <div class="feature-icon">
+
+                        <svg class="ui-icon"
+                             viewBox="0 0 24 24">
+
+                            <path d="M12 3L19 6V11C19 16 16 19 12 21C8 19 5 16 5 11V6L12 3Z" />
+
+                            <path d="M8.5 12L10.8 14.3L15.8 9.3" />
+
+                        </svg>
+
+                    </div>
+
+
+                    <div>
+
+                        <h3>
+                            Trust and verification
+                        </h3>
+
+                        <p>
+                            Every transfer can be verified
+                            and traced in your history.
+                        </p>
+
+                    </div>
+
+                </article>
+
+
+
+                <!-- SIMPLE -->
+
+                <article class="feature-card">
+
+                    <div class="feature-icon">
+
+                        <svg class="ui-icon"
+                             viewBox="0 0 24 24">
+
+                            <path d="M4 7L12 3L20 7L12 11L4 7Z" />
+
+                            <path d="M4 12L12 16L20 12" />
+
+                            <path d="M4 17L12 21L20 17" />
+
+                        </svg>
+
+                    </div>
+
+
+                    <div>
+
+                        <h3>
+                            Simple and efficient
+                        </h3>
+
+                        <p>
+                            Send, receive and manage documents
+                            in one secure workspace.
+                        </p>
+
+                    </div>
+
+                </article>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+
+<style>
+
+    /* ===================================================== */
+    /* GLOBAL */
+    /* ===================================================== */
+
+    .dashboard {
+        width: 100vw;
+        min-height: 100vh;
+
+        margin-left:
+            calc(50% - 50vw);
+
+        overflow-x: hidden;
+
+        background:
+            #0c131b;
+
+        color:
+            #f1efeb;
+
+        font-family:
+            Inter,
+            -apple-system,
+            BlinkMacSystemFont,
+            "Segoe UI",
+            Arial,
+            sans-serif;
+    }
+
+
+    .dashboard * {
+        box-sizing:
+            border-box;
+    }
+
+
+    .dashboard button,
+    .dashboard a {
+        font-family:
+            inherit;
+    }
+
+
+
+    /*
+        ВАЖНО:
+
+        stroke применяется ТОЛЬКО к обычным UI-иконкам.
+
+        background-waves сюда НЕ входит.
+
+        Поэтому огромных белых линий
+        больше быть не может.
+    */
+
+    .ui-icon {
+        fill:
+            none;
+
+        stroke:
+            currentColor;
+
+        stroke-width:
+            1.65;
+
+        stroke-linecap:
+            round;
+
+        stroke-linejoin:
+            round;
+    }
+
+
+    .background-waves path {
+        stroke:
+            none !important;
+    }
+
+
+
+    /* ===================================================== */
+    /* HEADER */
+    /* ===================================================== */
+
+    .header {
+        width:
+            100%;
+
+        height:
+            62px;
+
+        padding:
+            0
+            5.7vw;
+
+        display:
+            grid;
+
+        grid-template-columns:
+            1fr
+            auto
+            1fr;
+
+        align-items:
+            center;
+
+        position:
+            relative;
+
+        z-index:
+            50;
+
+        border-bottom:
+            1px solid
+            #26313c;
+
+        background:
+            #0c131b;
+    }
+
+
+
+    /* ===================================================== */
+    /* BRAND */
+    /* ===================================================== */
+
+    .brand {
+        width:
+            fit-content;
+
+        padding:
+            0;
+
+        display:
+            flex;
+
+        align-items:
+            center;
+
+        gap:
+            12px;
+
+        border:
+            none;
+
+        background:
+            transparent;
+
+        color:
+            #f2f0ec;
+
+        cursor:
+            pointer;
+    }
+
+
+    .brand-logo {
+        width:
+            34px;
+
+        height:
+            34px;
+
+        color:
+            #b9cedd;
+    }
+
+
+    .brand span {
+        font-size:
+            15px;
+
+        font-weight:
+            720;
+
+        letter-spacing:
+            0.85px;
+    }
+
+
+
+    /* ===================================================== */
+    /* NAV */
+    /* ===================================================== */
+
+    .nav {
+        display:
+            flex;
+
+        align-items:
+            center;
+
+        gap:
+            8px;
+    }
+
+
+    .nav button {
+        height:
+            41px;
+
+        padding:
+            0
+            17px;
+
+        border:
+            none;
+
+        border-radius:
+            9px;
+
+        background:
+            transparent;
+
+        color:
+            #c4cbd2;
+
+        font-size:
+            14px;
+
+        cursor:
+            pointer;
+
+        transition:
+            0.15s ease;
+    }
+
+
+    .nav button:hover {
+        background:
+            #18232d;
+
+        color:
+            white;
+    }
+
+
+    .nav button.active {
+        background:
+            #344b60;
+
+        color:
+            white;
+    }
+
+
+
+    /* ===================================================== */
+    /* ACCOUNT */
+    /* ===================================================== */
+
+    .account-zone {
+        display:
+            flex;
+
+        justify-content:
+            flex-end;
+
+        align-items:
+            center;
+    }
+
+
+    .account-capsule {
+        height:
+            46px;
+
+        display:
+            flex;
+
+        align-items:
+            center;
+
+        border:
+            1px solid
+            transparent;
+
+        border-radius:
+            24px;
+
+        transition:
+            0.2s ease;
+    }
+
+
+    .account-capsule.open {
+        padding-left:
+            8px;
+
+        background:
+            #151f29;
+
+        border-color:
+            #2e3b48;
+    }
+
+
+    .account-actions {
+        display:
+            flex;
+
+        align-items:
+            center;
+
+        animation:
+            accountOpen
+            0.18s
+            ease;
+    }
+
+
+    @@keyframes accountOpen {
+
+        from {
+            opacity:
+                0;
+
+            transform:
+                translateX(12px);
+        }
+
+        to {
+            opacity:
+                1;
+
+            transform:
+                translateX(0);
+        }
+
+    }
+
+
+    .account-actions button,
+    .account-actions a {
+        height:
+            32px;
+
+        padding:
+            0
+            12px;
+
+        display:
+            flex;
+
+        align-items:
+            center;
+
+        border:
+            none;
+
+        border-radius:
+            8px;
+
+        background:
+            transparent;
+
+        color:
+            #adb8c3;
+
+        font-size:
+            12px;
+
+        text-decoration:
+            none;
+
+        cursor:
+            pointer;
+
+        white-space:
+            nowrap;
+    }
+
+
+    .account-actions button:hover,
+    .account-actions a:hover {
+        background:
+            #202b36;
+
+        color:
+            white;
+    }
+
+
+    .account-actions i {
+        width:
+            1px;
+
+        height:
+            18px;
+
+        background:
+            #344250;
+    }
+
+
+    .account-toggle {
+        height:
+            44px;
+
+        padding:
+            0
+            7px;
+
+        display:
+            flex;
+
+        align-items:
+            center;
+
+        gap:
+            5px;
+
+        border:
+            none;
+
+        background:
+            transparent;
+
+        color:
+            white;
+
+        cursor:
+            pointer;
+    }
+
+
+    .avatar {
+        width:
+            37px;
+
+        height:
+            37px;
+
+        display:
+            flex;
+
+        align-items:
+            center;
+
+        justify-content:
+            center;
+
+        border-radius:
+            50%;
+
+        background:
+            #2b4155;
+
+        border:
+            1px solid
+            #3b556c;
+
+        font-size:
+            13px;
+
+        font-weight:
+            700;
+    }
+
+
+    .chevron {
+        color:
+            #8497a8;
+
+        font-size:
+            10px;
+
+        transition:
+            transform
+            0.2s;
+    }
+
+
+    .chevron.up {
+        transform:
+            rotate(180deg);
+    }
+
+
+
+    /* ===================================================== */
+    /* HERO */
+    /* ===================================================== */
+
+    .hero {
+        position:
+            relative;
+
+        height:
+            clamp(
+                370px,
+                49vh,
+                445px
+            );
+
+        overflow:
+            hidden;
+
+        background:
+            radial-gradient(
+                circle at 57% 27%,
+                rgba(50, 83, 109, 0.11),
+                transparent 43%
+            ),
+            #0d151e;
+    }
+
+
+
+    /* ===================================================== */
+    /* WAVES */
+    /* ===================================================== */
+
+    .background-waves {
+        position:
+            absolute;
+
+        inset:
+            0;
+
+        z-index:
+            0;
+
+        width:
+            100%;
+
+        height:
+            100%;
+
+        pointer-events:
+            none;
+    }
+
+
+
+    /*
+        Референс имеет мягкий
+        диагональный слой справа.
+    */
+
+    .right-accent {
+        position:
+            absolute;
+
+        z-index:
+            1;
+
+        top:
+            -25%;
+
+        right:
+            -6%;
+
+        width:
+            31%;
+
+        height:
+            150%;
+
+        opacity:
+            0.42;
+
+        transform:
+            skewX(-17deg);
+
+        background:
+            linear-gradient(
+                140deg,
+                rgba(83, 122, 151, 0.20),
+                rgba(83, 122, 151, 0.015)
+            );
+
+        pointer-events:
+            none;
+    }
+
+
+
+    /* ===================================================== */
+    /* HERO INNER */
+    /* ===================================================== */
+
+    .hero-inner {
+        position:
+            relative;
+
+        z-index:
+            5;
+
+        width:
+            88.4%;
+
+        max-width:
+            1500px;
+
+        height:
+            100%;
+
+        margin:
+            0 auto;
+
+        display:
+            grid;
+
+        grid-template-columns:
+            minmax(0, 1fr)
+            44%;
+
+        align-items:
+            center;
+
+        gap:
+            6%;
+    }
+
+
+
+    /* ===================================================== */
+    /* LEFT HERO */
+    /* ===================================================== */
+
+    .hero-copy {
+        padding-bottom:
+            2px;
+    }
+
+
+    .eyebrow {
+        display:
+            flex;
+
+        align-items:
+            center;
+
+        gap:
+            10px;
+
+        margin-bottom:
+            22px;
+
+        color:
+            #8dacc4;
+
+        font-size:
+            10px;
+
+        font-weight:
+            700;
+
+        letter-spacing:
+            1px;
+    }
+
+
+    .eyebrow svg {
+        width:
+            17px;
+
+        height:
+            17px;
+    }
+
+
+    .eyebrow-line {
+        width:
+            120px;
+
+        height:
+            1px;
+
+        margin-left:
+            10px;
+
+        background:
+            linear-gradient(
+                90deg,
+                #708a9e,
+                transparent
+            );
+    }
+
+
+    .hero h1 {
+        max-width:
+            620px;
+
+        margin:
+            0;
+
+        color:
+            #f0ede7;
+
+        font-size:
+            clamp(
+                40px,
+                3.45vw,
+                48px
+            );
+
+        line-height:
+            1.08;
+
+        letter-spacing:
+            -1.6px;
+
+        font-weight:
+            670;
+    }
+
+
+    .hero-description {
+        max-width:
+            560px;
+
+        margin:
+            18px
+            0
+            28px;
+
+        color:
+            #aab4bf;
+
+        font-size:
+            15px;
+
+        line-height:
+            1.62;
+    }
+
+
+
+    /* ===================================================== */
+    /* HERO ACTIONS */
+    /* ===================================================== */
+
+    .hero-actions {
+        display:
+            flex;
+
+        align-items:
+            center;
+
+        gap:
+            21px;
+    }
+
+
+    .primary-button {
+        height:
+            51px;
+
+        padding:
+            0
+            20px;
+
+        display:
+            flex;
+
+        align-items:
+            center;
+
+        gap:
+            12px;
+
+        border:
+            1px solid
+            #82a6c1;
+
+        border-radius:
+            11px;
+
+        background:
+            linear-gradient(
+                135deg,
+                #769ab7,
+                #688aa6
+            );
+
+        color:
+            white;
+
+        font-size:
+            14px;
+
+        font-weight:
+            620;
+
+        cursor:
+            pointer;
+
+        box-shadow:
+            0
+            8px
+            25px
+            rgba(0,0,0,0.16);
+
+        transition:
+            0.15s;
+    }
+
+
+    .primary-button .ui-icon {
+        width:
+            20px;
+
+        height:
+            20px;
+    }
+
+
+    .primary-button:hover {
+        transform:
+            translateY(-1px);
+
+        background:
+            linear-gradient(
+                135deg,
+                #84a7c1,
+                #7293af
+            );
+    }
+
+
+    .button-arrow {
+        margin-left:
+            3px;
+
+        color:
+            #e2edf4;
+
+        font-size:
+            18px;
+    }
+
+
+    .secondary-button {
+        height:
+            49px;
+
+        padding:
+            0
+            29px;
+
+        border:
+            1px solid
+            #627b90;
+
+        border-radius:
+            10px;
+
+        background:
+            rgba(10,16,23,0.32);
+
+        color:
+            #f0f1f2;
+
+        font-size:
+            14px;
+
+        cursor:
+            pointer;
+
+        transition:
+            0.15s;
+    }
+
+
+    .secondary-button:hover {
+        background:
+            #17222c;
+    }
+
+
+
+    /* ===================================================== */
+    /* TRANSFER CARD */
+    /* ===================================================== */
+
+    .transfer-card {
+        width:
+            100%;
+
+        max-width:
+            510px;
+
+        justify-self:
+            end;
+
+        padding:
+            31px
+            30px
+            20px;
+
+        border:
+            1px solid
+            #354a5b;
+
+        border-radius:
+            18px;
+
+        background:
+            linear-gradient(
+                145deg,
+                rgba(25,38,51,0.97),
+                rgba(18,29,39,0.96)
+            );
+
+        box-shadow:
+            0
+            22px
+            60px
+            rgba(0,0,0,0.14);
+    }
+
+
+    .transfer-steps {
+        display:
+            flex;
+
+        align-items:
+            center;
+
+        justify-content:
+            space-between;
+    }
+
+
+    .transfer-step {
+        min-width:
+            82px;
+
+        display:
+            flex;
+
+        flex-direction:
+            column;
+
+        align-items:
+            center;
+
+        gap:
+            9px;
+    }
+
+
+    .step-icon {
+        width:
+            57px;
+
+        height:
+            57px;
+
+        display:
+            flex;
+
+        align-items:
+            center;
+
+        justify-content:
+            center;
+
+        border:
+            1px solid
+            #40586a;
+
+        border-radius:
+            13px;
+
+        background:
+            linear-gradient(
+                145deg,
+                #263747,
+                #1f2d3a
+            );
+
+        color:
+            #b8d1e3;
+    }
+
+
+    .step-icon .ui-icon {
+        width:
+            27px;
+
+        height:
+            27px;
+    }
+
+
+    .transfer-step strong {
+        color:
+            #f1f1ef;
+
+        font-size:
+            12px;
+
+        font-weight:
+            650;
+    }
+
+
+    .flow-arrow {
+        margin-bottom:
+            18px;
+
+        color:
+            #86a7bf;
+
+        font-size:
+            19px;
+    }
+
+
+    .transfer-divider {
+        height:
+            1px;
+
+        margin:
+            25px
+            0
+            17px;
+
+        background:
+            #354552;
+    }
+
+
+
+    /* ===================================================== */
+    /* SECURE TRANSFER */
+    /* ===================================================== */
+
+    .secure-transfer {
+        display:
+            flex;
+
+        align-items:
+            center;
+
+        gap:
+            14px;
+    }
+
+
+    .success-circle {
+        width:
+            39px;
+
+        height:
+            39px;
+
+        flex-shrink:
+            0;
+
+        display:
+            flex;
+
+        align-items:
+            center;
+
+        justify-content:
+            center;
+
+        border-radius:
+            50%;
+
+        background:
+            #29493f;
+
+        color:
+            #acd5c0;
+
+        font-size:
+            17px;
+    }
+
+
+    .secure-copy strong {
+        display:
+            block;
+
+        margin-bottom:
+            3px;
+
+        color:
+            #f1f1ef;
+
+        font-size:
+            11px;
+    }
+
+
+    .secure-copy p {
+        max-width:
+            285px;
+
+        margin:
+            0;
+
+        color:
+            #a1abb5;
+
+        font-size:
+            10px;
+
+        line-height:
+            1.42;
+    }
+
+
+
+    /* ===================================================== */
+    /* WHY SECTION */
+    /* ===================================================== */
+
+    .why-section {
+        padding:
+            28px
+            0
+            48px;
+
+        background:
+            #0c131b;
+    }
+
+
+    .why-title {
+        width:
+            83%;
+
+        max-width:
+            1250px;
+
+        margin:
+            0
+            auto
+            34px;
+
+        display:
+            grid;
+
+        grid-template-columns:
+            1fr
+            auto
+            1fr;
+
+        align-items:
+            center;
+
+        gap:
+            25px;
+    }
+
+
+    .why-title > span {
+        height:
+            1px;
+
+        background:
+            linear-gradient(
+                90deg,
+                transparent,
+                #60798e
+            );
+    }
+
+
+    .why-title > span:last-child {
+        background:
+            linear-gradient(
+                90deg,
+                #60798e,
+                transparent
+            );
+    }
+
+
+    .why-title h2 {
+        margin:
+            0;
+
+        color:
+            #f0eee9;
+
+        font-size:
+            25px;
+
+        font-weight:
+            650;
+
+        letter-spacing:
+            -0.5px;
+    }
+
+
+
+    /* ===================================================== */
+    /* FEATURES */
+    /* ===================================================== */
+
+    .features {
+        width:
+            91%;
+
+        max-width:
+            1450px;
+
+        margin:
+            0 auto;
+
+        display:
+            grid;
+
+        grid-template-columns:
+            repeat(3, 1fr);
+
+        gap:
+            21px;
+    }
+
+
+    .feature-card {
+        min-height:
+            103px;
+
+        padding:
+            17px
+            22px;
+
+        display:
+            flex;
+
+        align-items:
+            center;
+
+        gap:
+            17px;
+
+        border:
+            1px solid
+            #304557;
+
+        border-radius:
+            14px;
+
+        background:
+            linear-gradient(
+                145deg,
+                rgba(21,31,41,0.95),
+                rgba(17,26,35,0.92)
+            );
+    }
+
+
+    .feature-icon {
+        width:
+            49px;
+
+        height:
+            49px;
+
+        flex-shrink:
+            0;
+
+        display:
+            flex;
+
+        align-items:
+            center;
+
+        justify-content:
+            center;
+
+        border-radius:
+            11px;
+
+        background:
+            #213346;
+
+        color:
+            #b0d0e6;
+    }
+
+
+    .feature-icon .ui-icon {
+        width:
+            25px;
+
+        height:
+            25px;
+    }
+
+
+    .feature-card h3 {
+        margin:
+            0
+            0
+            6px;
+
+        color:
+            #f1f1ef;
+
+        font-size:
+            13px;
+
+        font-weight:
+            650;
+    }
+
+
+    .feature-card p {
+        max-width:
+            290px;
+
+        margin:
+            0;
+
+        color:
+            #9faab5;
+
+        font-size:
+            11px;
+
+        line-height:
+            1.5;
+    }
+
+
+
+    /* ===================================================== */
+    /* RESPONSIVE */
+    /* ===================================================== */
+
+    @@media (max-width: 950px) {
+
+        .header {
+            padding:
+                0
+                22px;
+
+            grid-template-columns:
+                1fr
+                auto;
+        }
+
+
+        .nav {
+            display:
+                none;
+        }
+
+
+        .hero {
+            height:
+                auto;
+
+            min-height:
+                650px;
+        }
+
+
+        .hero-inner {
+            width:
+                calc(100% - 44px);
+
+            padding:
+                50px
+                0;
+
+            display:
+                flex;
+
+            flex-direction:
+                column;
+
+            align-items:
+                stretch;
+
+            gap:
+                45px;
+        }
+
+
+        .transfer-card {
+            max-width:
+                none;
+        }
+
+
+        .features {
+            width:
+                calc(100% - 44px);
+
+            grid-template-columns:
+                1fr;
+        }
+
+
+        .why-title {
+            width:
+                calc(100% - 44px);
+        }
+
+    }
+
+</style>
+
+
+
+@code
+{
+    private string username = "";
+
+    private string sessionToken = "";
+
+    private bool showAccountMenu = false;
+
+
+    // =====================================================
+    // PAGE START
+    // =====================================================
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authenticationState =
+            await AuthenticationStateProvider
+                .GetAuthenticationStateAsync();
+
+
+        var user =
+            authenticationState.User;
+
+
+        // Если пользователь не вошёл,
+        // отправляем его на Login.
+        if (user.Identity?.IsAuthenticated != true)
+        {
+            NavigationManager.NavigateTo(
+                "/login",
+                forceLoad: true
+            );
+
+            return;
+        }
+
+
+        username =
+            user.Identity?.Name ?? "";
+
+
+        sessionToken =
+            user.FindFirst(
+                "sessionToken"
+            )?.Value ?? "";
+
+
+        // Если осталась старая Cookie,
+        // в которой ещё нет Session Token,
+        // делаем нормальный Logout.
+        if (string.IsNullOrWhiteSpace(
+                sessionToken
+            ))
+        {
+            NavigationManager.NavigateTo(
+                "/auth/logout",
+                forceLoad: true
+            );
+
+            return;
+        }
+    }
+
+
+
+    // =====================================================
+    // ACCOUNT
+    // =====================================================
+
+    private string GetUserLetter()
+    {
+        if (string.IsNullOrWhiteSpace(
+                username
+            ))
+        {
+            return "?";
+        }
+
+
+        return username
+            .Substring(0, 1)
+            .ToUpper();
+    }
+
+
+    private void ToggleAccountMenu()
+    {
+        showAccountMenu =
+            !showAccountMenu;
+    }
+
+
+    private void OpenAccount()
+    {
+        // Account сделаем позже.
+    }
+
+
+    private void OpenSettings()
+    {
+        // Позже здесь будут:
+        //
+        // Theme
+        // Language
+    }
+
+
+
+    // =====================================================
+    // NAVIGATION
+    // =====================================================
+
+    private void GoDashboard()
+    {
+        NavigationManager.NavigateTo(
+            "/dashboard"
+        );
+    }
+
+
+    private void OpenSend()
+    {
+        // Следующий этап.
+    }
+
+
+    private void OpenInbox()
+    {
+        // Сделаем позже.
+    }
+
+
+    private void OpenSent()
+    {
+        // Сделаем позже.
+    }
+
+
+    private void OpenHistory()
+    {
+        // Сделаем позже.
+    }
+}
